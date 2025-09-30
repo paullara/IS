@@ -75,6 +75,12 @@ export default function EmployerLayout({ header, children }) {
                     >
                         <h1 className="text-lg font-medium">Verify</h1>
                     </NavLink>
+                    <NavLink
+                        href={route("incident.report.employer")}
+                        active={route().current("incident.report.employer")}
+                    >
+                        <h1 className="text-lg font-medium">Incident Report</h1>
+                    </NavLink>
                 </nav>
 
                 <div className="p-4 border-t bg-white sticky bottom-0 z-10">

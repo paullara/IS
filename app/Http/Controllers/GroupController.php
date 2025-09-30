@@ -39,7 +39,7 @@ class GroupController extends Controller
         ]);
 
         // Attach/sync students to the group
-        $group->students()->sync($request->student_ids);
+        $group->students()->syncWithoutDetaching($request->student_ids);
 
         return redirect()
             ->route('groups.show', $group)
@@ -49,7 +49,7 @@ class GroupController extends Controller
 
     public function index()
     {
-        $groups = Group::with('students.studentProfile')
+        $groups = Group::with('students')
             ->where('instructor_id', auth()->id())
             ->get();
 
@@ -58,9 +58,9 @@ class GroupController extends Controller
         ]);
     }
 
-      public function showGroup(Group $group)
+    public function showGroup(Group $group)
     {
-        $group->load(['instructor', 'students']);
+        $group->load(['instructor', 'students']); // students already assigned
 
         $documents = $group->documents()->get()->map(function ($doc) {
             return [
@@ -70,7 +70,26 @@ class GroupController extends Controller
             ];
         });
 
-        $users = User::select('id', 'firstname', 'role')->get();
+        // Get all accepted students
+        $acceptedStudents = User::where('role', 'student')
+            ->whereHas('applications', fn($q) => $q->where('status', 'accepted'))
+            ->with(['applications' => fn($q) => $q->where('status', 'accepted')])
+            ->get();
+
+            // dd($acceptedStudents->first()->toArray());
+
+
+        $users = $acceptedStudents->map(fn($student) => [
+            'id' => $student->id,
+            'firstname' => $student->firstname,
+            'middlename' => $student->middlename,
+            'lastname' => $student->lastname,
+            'section' => $student->section,
+            'company_name' => $student->applications->first()?->employer->company_name ?? null,
+            'assigned' => $group->students->contains($student->id),
+        ]);
+
+
         return Inertia::render('Instructor/GroupShow', [
             'group' => $group,
             'users' => $users,

@@ -8,6 +8,9 @@ use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\GroupDocumentController;
+use App\Http\Controllers\IncidentReportController;
+use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\GroupController;
@@ -27,6 +30,15 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/notifications', function () {
+    return auth()->user()->unreadNotifications;
+});
+
+Route::get('/notifications/json', function () {
+    return auth()->user()->notifications; // includes both read and unread
+});
+
 
 Route::post('/notifications/{id}/read', function ($id) {
     $notification = auth()->user()->notifications()->findOrFail($id);
@@ -89,6 +101,10 @@ Route::middleware(['auth', 'employer'])->group(function () {
     Route::get('/verify', [ApplyController::class, 'create'])->name('company.verify');
     Route::post('/apply', [ApplyController::class, 'store'])->name('company-application.store');
     Route::get('/employer/application-status', [EmployerController::class, 'checkStatus']);
+    Route::get('/employer/incident/report/', [EmployerController::class, 'incidentReport'])->name('incident.report.employer');
+    Route::get('/internships/report', [EmployerController::class, 'internshipForIncidentReport']);
+    Route::post('/incident-reports', [IncidentReportController::class, 'store']);
+    Route::post('/evaluations', [EvaluationController::class, 'store']);
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -156,6 +172,13 @@ Route::get('/visitation/companies', [VisitationController::class, 'companies']);
 Route::post('/visitation/store', [VisitationController::class, 'store']);
 Route::get('/visitations', [VisitationController::class, 'visitation']);
 Route::get('/get/instructor', [CoordinatorController::class, 'getInstructors']);
+Route::get('/student/master/list', [CoordinatorController::class, 'studentMasterList'])->name('student.master.list');
+Route::get('/reports/student-masterlist/download', [ReportController::class, 'downloadStudentMasterList'])->name('reports.student-masterlist.download');
+Route::get('/coordinator/notifications', [CoordinatorController::class, 'notification'])->name('coordinator.notification');
+Route::get('/incident/report', [CoordinatorController::class, 'incidentReport'])->name('coordinator.incident');
+Route::get('/incident/report/fetch', [CoordinatorController::class, 'getIncidentReport']);
+Route::get('/evaluation/monitor' , [EvaluationController::class, 'monitorEvaluation'])->name('monitor.evaluation');
+Route::get('/evaluation/fetch', [EvaluationController::class, 'evaluatedStudent']);
 // Coordinator: Groups with students
 Route::get('/coordinator/groups', [CoordinatorController::class, 'groupsWithStudents'])->name('coordinator.groups');
 Route::get('/coordinator/groups/create', [GroupController::class, 'create'])->name('instructor.groups.create');

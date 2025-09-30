@@ -37,6 +37,9 @@ export default function Show({ auth, student }) {
                     <p>
                         <strong>Bio:</strong> {student.bio || "N/A"}
                     </p>
+                    <p>
+                        <strong>Section:</strong> {student.section || "N/A"}
+                    </p>
                 </div>
 
                 {/* Edit Button */}

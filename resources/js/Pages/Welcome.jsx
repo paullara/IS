@@ -123,10 +123,10 @@ export default function Welcome({ auth }) {
                             here.
                         </p>
                         <Link
-                            href={route(auth.user ? "dashboard" : "register")}
+                            href="#cta"
                             className="bg-black text-white px-8 py-4 rounded-full hover:bg-gray-800 transition text-lg"
                         >
-                            {auth.user ? "Go to Dashboard" : "Get Started"}
+                            {"Get Started"}
                         </Link>
                     </section>
 

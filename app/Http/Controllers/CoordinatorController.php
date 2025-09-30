@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Auth;
 use App\Notifications\ApplicationStatusNotification;
 use App\Models\Internship;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
 use App\Models\StudentProfile;
+use App\Models\IncidentReport;
 use App\Models\Application;
 use App\Models\CompanyApplication;
 use App\Models\Group;
@@ -413,7 +415,7 @@ public function assignStudentToInternship(Request $request)
     public function groupsWithStudents()
     {
         // Get all groups, their instructor, and students with studentProfile
-        $groups = Group::with(['instructor', 'students.studentProfile'])->get();
+        $groups = Group::with(['instructor', 'students'])->get();
         return Inertia::render('Coordinator/Groups', [
             'groups' => $groups,
         ]);
@@ -479,6 +481,90 @@ public function assignStudentToInternship(Request $request)
 
         return response()->json([
             'instructors' => $instructors
+        ]);
+    }
+
+    public function studentMasterList(Request $request)
+    {   
+        $query = User::where('role', 'student')->with([
+            'applications.internship.employer',
+            'groups'
+        ]);
+
+        $filterStatus = $request->status ?? null;
+
+        // ✅ filter by status if present
+        if ($filterStatus) {
+            $query->whereHas('applications', function ($q) use ($filterStatus) {
+                $q->where('status', $filterStatus);
+            });
+        }
+
+        $students = $query->get()->map(function ($student) use ($filterStatus) 
+        {
+            $application = null;
+
+            if ($filterStatus) {
+                $application = $student->applications->firstWhere('status', $filterStatus);
+            } else {
+                $application = $student->applications->firstWhere('status', 'accepted')
+                    ?: $student->applications->last();
+            }
+
+            $company = $application && $application->status === "accepted"
+                ? ($application->internship->employer->company_name ?? 'N/A')
+                : "Unassigned";
+
+            $internship = $application->internship->title ?? 'N/A';
+
+            // 🚨 FIX: If filtering by rejected, pending, or no application → NO group
+            $groupSection = 'No Group';
+            if (!$filterStatus || $filterStatus === 'accepted') {
+                $groupSection = $student->groups->map(function ($group) {
+                    return $group->name . ' - ' . $group->section;
+                })->implode(', ') ?: 'No Group';
+            }
+
+            return [
+                'id' => $student->id,
+                'name' => $student->firstname . ' ' . ($student->middlename ? $student->middlename . ' ' : '') . $student->lastname,
+                'student_id' => $student->school_id,
+                'company' => $company,
+                'internship' => $internship,
+                'status' => $application->status ?? 'No Application',
+                'group_section' => $groupSection,
+            ];
+        });
+
+        if ($request->has('download') && $request->download === 'pdf') {
+            $pdf = Pdf::loadView('pdf.student_master_list', [
+                'students' => $students
+            ]);
+            return $pdf->download('student_master_list.pdf');
+            }
+
+            return Inertia::render('Coordinator/Reports/StudentMasterList', [
+                'students' => $students,
+                'filters' => ['status' => $filterStatus],
+        ]);
+    }   
+
+    public function notification()
+    {
+        return Inertia::render('Coordinator/Notification');
+    }
+
+    public function incidentReport()
+    {
+        return Inertia::render('Coordinator/IncidentReport');
+    }
+
+    public function getIncidentReport()
+    {
+        $report = IncidentReport::with('internship', 'employer')->latest()->get();
+
+        return response()->json([
+            'report' => $report,
         ]);
     }
 }

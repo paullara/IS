@@ -10,7 +10,7 @@ export default function Coordinator({ header, children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100 flex">
+        <div className="h-screen overflow-hidden bg-gray-100 flex">
             <div
                 className={`${
                     sidebarOpen ? "block" : "hidden"
@@ -38,6 +38,32 @@ export default function Coordinator({ header, children }) {
                         active={route().current("instructors.list")}
                     >
                         <h1 className="text-lg font-medium">Instructor</h1>
+                    </NavLink>
+                    <NavLink
+                        href={route("student.master.list")}
+                        active={route().current("student.master.list")}
+                    >
+                        <h1 className="text-lg font-medium">Students</h1>
+                    </NavLink>
+                    <NavLink
+                        href={route("coordinator.notification")}
+                        active={route().current("coordinator.notification")}
+                    >
+                        <h1 className="text-lg font-medium">Notification</h1>
+                    </NavLink>
+                    <NavLink
+                        href={route("coordinator.incident")}
+                        active={route().current("coordinator.incident")}
+                    >
+                        <h1 className="text-lg font-medium">Incident Report</h1>
+                    </NavLink>
+                    <NavLink
+                        href={route("monitor.evaluation")}
+                        active={route().current("monitor.evaluation")}
+                    >
+                        <h1 className="text-lg font-medium">
+                            Monitor Evaluation
+                        </h1>
                     </NavLink>
                     {/* <NavLink
                         href={route("coordinator.groups.create")}
@@ -160,7 +186,7 @@ export default function Coordinator({ header, children }) {
                         </div>
                     </div>
                 </nav>
-                <main className="flex-1 bg-gray-50">
+                <main className="flex-1 overflow-y-auto bg-gray-50">
                     {header && (
                         <header className="bg-white shadow">
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

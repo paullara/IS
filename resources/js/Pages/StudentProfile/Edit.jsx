@@ -11,6 +11,7 @@ export default function EditProfile({ student }) {
         year_level: student?.year_level || "4th",
         skills: student?.skills || "",
         bio: student?.bio || "",
+        section: student?.section || "",
         picture: null,
     });
 
@@ -186,6 +187,22 @@ export default function EditProfile({ student }) {
                         />
                         {errors.bio && (
                             <p className="text-red-500">{errors.bio}</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Section
+                        </label>
+                        <textarea
+                            name="section"
+                            value={formData.section}
+                            onChange={handleChange}
+                            rows="3"
+                            className="border p-2 w-full rounded"
+                        />
+                        {errors.skills && (
+                            <p className="text-red-500">{errors.section}</p>
                         )}
                     </div>
 

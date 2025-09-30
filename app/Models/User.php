@@ -34,7 +34,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'picture',
         'course',
         'email_verified_at',
-        'status'
+        'status',
+        'section',
     ];
 
     /**
@@ -58,16 +59,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
-    }
-
-    public function studentProfile()
-    {
-        return $this->hasOne(StudentProfile::class);
-    }
-
-    public function employerProfile()
-    {
-        return $this->hasOne(EmployerProfile::class);
     }
 
     public function internships()

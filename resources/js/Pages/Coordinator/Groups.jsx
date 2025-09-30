@@ -20,7 +20,7 @@ export default function Groups() {
                                 <div className="mb-2 text-sm text-gray-600">
                                     Instructor:{" "}
                                     {group.instructor
-                                        ? group.instructor.name
+                                        ? group.instructor.firstname
                                         : "N/A"}
                                 </div>
                                 <h3 className="font-semibold">Students:</h3>
@@ -32,7 +32,9 @@ export default function Groups() {
                                     <ul className="ml-4 list-disc">
                                         {group.students.map((student) => (
                                             <li key={student.id}>
-                                                {student.name} ({student.email})
+                                                {student.firstname}{" "}
+                                                {student.lastname} (
+                                                {student.email})
                                                 {student.student_profile && (
                                                     <span className="text-xs text-gray-500 ml-2">
                                                         | School ID:{" "}

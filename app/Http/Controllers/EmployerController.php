@@ -256,5 +256,23 @@ class EmployerController extends Controller
         return response()->json(['status' => $application->status]);
     }
 
+    public function incidentReport()
+    {
+        $internship = Internship::with('employer')->latest()->get();
+        return Inertia::render('Employer/IncidentReport', [
+            'internship' => $internship
+        ]);
+    }
+
+    public function internshipForIncidentReport()
+    {
+        $internship = Internship::where('employer_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'internship' => $internship,
+        ]);
+    }
     
 }

@@ -8,17 +8,18 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const [file, setFile] = useState(null);
-
     const [documentsState, setDocuments] = useState(documents);
-
-    // Messaging state
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Pre-select already assigned students
     const { data, setData, post, processing, errors } = useForm({
-        student_ids: group.students.map((s) => s.id),
+        student_ids: users.filter((u) => u.assigned).map((u) => u.id),
     });
+
+    // Only accepted students (available for assigning)
+    const acceptedStudents = users;
 
     // Fetch messages
     useEffect(() => {
@@ -38,7 +39,6 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
         };
     }, [group.id]);
 
-    // Send message
     const handleSendMessage = (e) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
@@ -62,15 +62,14 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
             .finally(() => setLoading(false));
     };
 
-    // Assign students
     const handleAssignStudents = (e) => {
         e.preventDefault();
         post(`/groups/${group.id}/assign-students`, {
+            data: { student_ids: data.student_ids },
             onSuccess: () => setShowAssign(false),
         });
     };
 
-    // Upload document
     const handleUpload = (e) => {
         e.preventDefault();
         setUploadError("");
@@ -103,8 +102,6 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
             .finally(() => setUploading(false));
     };
 
-    const students = users.filter((u) => u.role === "student");
-
     return (
         <Instructor title={`Group: ${group.name}`}>
             <div className="h-screen w-full bg-gray-50 py-10">
@@ -113,7 +110,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">
-                                {group.name}
+                                {group.name} {group.section}
                             </h1>
                             <p className="text-gray-600 mt-1">
                                 <span className="font-medium">Instructor:</span>{" "}
@@ -140,7 +137,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                         {/* Students Section */}
                         <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
                             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                                Students
+                                Students in Group
                             </h2>
                             {group.students.length === 0 ? (
                                 <p className="text-gray-500 italic">
@@ -154,16 +151,19 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                             className="bg-white p-3 rounded-lg shadow border"
                                         >
                                             <span className="text-gray-900 font-medium">
-                                                {s.student
-                                                    ? `${s.student.firstname} ${
-                                                          s.student.middlename
-                                                              ? s.student
-                                                                    .middlename +
-                                                                " "
-                                                              : ""
-                                                      }${s.student.lastname}`
-                                                    : s.firstname}
+                                                {s.firstname}{" "}
+                                                {s.middlename
+                                                    ? s.middlename + " "
+                                                    : ""}
+                                                {s.lastname}
                                             </span>
+
+                                            {s.company_name && (
+                                                <p className="text-sm text-gray-500">
+                                                    Accepted at:{" "}
+                                                    {s.company_name}
+                                                </p>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -184,14 +184,12 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                     {documentsState.map((doc) => (
                                         <li key={doc.id}>
                                             <a
-                                                href={`/group-documents/${doc.id}/download`}
+                                                href={doc.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-700 font-medium hover:underline"
                                             >
-                                                {doc.name ||
-                                                    doc.original_name ||
-                                                    "Document"}
+                                                {doc.name || "Document"}
                                             </a>
                                         </li>
                                     ))}
@@ -216,7 +214,8 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                             className="mb-3 border-b pb-2"
                                         >
                                             <span className="font-semibold text-gray-900">
-                                                {msg.user?.name || "Unknown"}
+                                                {msg.user?.firstname ||
+                                                    "Unknown"}
                                             </span>
                                             <span className="text-xs text-gray-500 ml-2">
                                                 {msg.created_at &&
@@ -301,7 +300,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
                             <h3 className="text-lg font-bold mb-4">
-                                Assign Students to {group.name}
+                                Assign Accepted Students to {group.name}
                             </h3>
                             <form onSubmit={handleAssignStudents}>
                                 <select
@@ -318,9 +317,15 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                         )
                                     }
                                 >
-                                    {students.map((s) => (
+                                    {acceptedStudents.map((s) => (
                                         <option key={s.id} value={s.id}>
-                                            {s.firstname}
+                                            {s.firstname}{" "}
+                                            {s.middlename
+                                                ? s.middlename + " "
+                                                : ""}
+                                            {s.lastname} -
+                                            {s.company_name || "No Company"}(
+                                            {s.section})
                                         </option>
                                     ))}
                                 </select>

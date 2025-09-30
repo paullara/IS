@@ -27,46 +27,75 @@ export default function Company() {
 
     return (
         <Coordinator>
-            <h1 className="text-2xl font-bold mb-6">Partner Companies</h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {companies.map((company) => {
-                    const profile = company.user;
-                    return (
-                        <div
-                            key={company.id}
-                            className="border p-4 rounded-lg shadow bg-white"
-                        >
-                            <h2 className="text-xl font-semibold mb-2">
-                                {profile?.name ?? "Unnamed Company"}
-                            </h2>
+            <div className="p-6 bg-white rounded-xl shadow">
+                <h1 className="text-3xl font-bold mb-6 text-gray-800">
+                    Partner Companies
+                </h1>
 
-                            <p>
-                                <strong>Phone:</strong>{" "}
-                                {profile?.contact_number ?? "N/A"}
-                            </p>
-
-                            <p>
-                                <strong>Address:</strong>{" "}
-                                {profile?.company_address ?? "N/A"}
-                            </p>
-                            <p>
-                                <strong>Website:</strong>{" "}
-                                {profile?.website ? (
-                                    <a
-                                        href={profile.website}
-                                        className="text-blue-500 underline"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        {profile.website}
-                                    </a>
-                                ) : (
-                                    "N/A"
-                                )}
-                            </p>
-                        </div>
-                    );
-                })}
+                {companies.length === 0 ? (
+                    <p className="text-gray-500">No partner companies found.</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full border border-gray-200 text-left text-sm">
+                            <thead className="bg-gray-100 text-gray-700">
+                                <tr>
+                                    <th className="px-4 py-2 border">#</th>
+                                    <th className="px-4 py-2 border">
+                                        Company
+                                    </th>
+                                    <th className="px-4 py-2 border">Phone</th>
+                                    <th className="px-4 py-2 border">
+                                        Address
+                                    </th>
+                                    <th className="px-4 py-2 border">
+                                        Website
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {companies.map((company, index) => {
+                                    const profile = company.user;
+                                    return (
+                                        <tr
+                                            key={company.id}
+                                            className="hover:bg-gray-50"
+                                        >
+                                            <td className="px-4 py-2 border">
+                                                {index + 1}
+                                            </td>
+                                            <td className="px-4 py-2 border font-medium text-gray-800">
+                                                {profile?.name ??
+                                                    "Unnamed Company"}
+                                            </td>
+                                            <td className="px-4 py-2 border">
+                                                {profile?.contact_number ??
+                                                    "N/A"}
+                                            </td>
+                                            <td className="px-4 py-2 border">
+                                                {profile?.company_address ??
+                                                    "N/A"}
+                                            </td>
+                                            <td className="px-4 py-2 border">
+                                                {profile?.website ? (
+                                                    <a
+                                                        href={profile.website}
+                                                        className="text-blue-500 underline"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {profile.website}
+                                                    </a>
+                                                ) : (
+                                                    "N/A"
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
         </Coordinator>
     );
