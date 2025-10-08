@@ -22,7 +22,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
                                     <h1 className="text-3xl font-bold text-gray-800">
-                                        InternX
+                                        InternConnect
                                     </h1>
                                 </Link>
                             </div>
