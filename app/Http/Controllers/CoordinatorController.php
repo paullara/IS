@@ -485,69 +485,86 @@ public function assignStudentToInternship(Request $request)
     }
 
     public function studentMasterList(Request $request)
-    {   
-        $query = User::where('role', 'student')->with([
-            'applications.internship.employer',
-            'groups'
-        ]);
+{
+    $query = User::where('role', 'student')->with([
+        'applications.internship.employer',
+        'groups'
+    ]);
 
-        $filterStatus = $request->status ?? null;
+    $filterStatus = $request->status ?? null;
+    $filterCourse = $request->course ?? null; // 🔹
+    $filterSection = $request->section ?? null; // 🔹
 
-        // ✅ filter by status if present
+    // ✅ filter by status if present
+    if ($filterStatus) {
+        $query->whereHas('applications', function ($q) use ($filterStatus) {
+            $q->where('status', $filterStatus);
+        });
+    }
+
+    // 🔹 filter by course if present
+    if ($filterCourse) {
+        $query->where('course', $filterCourse);
+    }
+
+    // 🔹 filter by section if present
+    if ($filterSection) {
+        $query->where('section', $filterSection);
+    }
+
+    $students = $query->get()->map(function ($student) use ($filterStatus) {
+        $application = null;
+
         if ($filterStatus) {
-            $query->whereHas('applications', function ($q) use ($filterStatus) {
-                $q->where('status', $filterStatus);
-            });
+            $application = $student->applications->firstWhere('status', $filterStatus);
+        } else {
+            $application = $student->applications->firstWhere('status', 'accepted')
+                ?: $student->applications->last();
         }
 
-        $students = $query->get()->map(function ($student) use ($filterStatus) 
-        {
-            $application = null;
+        $company = $application && $application->status === "accepted"
+            ? ($application->internship->employer->company_name ?? 'N/A')
+            : "Unassigned";
 
-            if ($filterStatus) {
-                $application = $student->applications->firstWhere('status', $filterStatus);
-            } else {
-                $application = $student->applications->firstWhere('status', 'accepted')
-                    ?: $student->applications->last();
-            }
+        $internship = $application->internship->title ?? 'N/A';
 
-            $company = $application && $application->status === "accepted"
-                ? ($application->internship->employer->company_name ?? 'N/A')
-                : "Unassigned";
+        $groupSection = 'No Group';
+        if (!$filterStatus || $filterStatus === 'accepted') {
+            $groupSection = $student->groups->map(function ($group) {
+                return $group->name . ' - ' . $group->section;
+            })->implode(', ') ?: 'No Group';
+        }
 
-            $internship = $application->internship->title ?? 'N/A';
+        return [
+            'id' => $student->id,
+            'name' => $student->firstname . ' ' . ($student->middlename ? $student->middlename . ' ' : '') . $student->lastname,
+            'student_id' => $student->school_id,
+            'course' => $student->course ?? 'N/A', // 🔹 show course in data
+            'section' => $student->section ?? 'N/A', // 🔹 show section
+            'company' => $company,
+            'internship' => $internship,
+            'status' => $application->status ?? 'No Application',
+            'group_section' => $groupSection,
+        ];
+    });
 
-            // 🚨 FIX: If filtering by rejected, pending, or no application → NO group
-            $groupSection = 'No Group';
-            if (!$filterStatus || $filterStatus === 'accepted') {
-                $groupSection = $student->groups->map(function ($group) {
-                    return $group->name . ' - ' . $group->section;
-                })->implode(', ') ?: 'No Group';
-            }
-
-            return [
-                'id' => $student->id,
-                'name' => $student->firstname . ' ' . ($student->middlename ? $student->middlename . ' ' : '') . $student->lastname,
-                'student_id' => $student->school_id,
-                'company' => $company,
-                'internship' => $internship,
-                'status' => $application->status ?? 'No Application',
-                'group_section' => $groupSection,
-            ];
-        });
-
-        if ($request->has('download') && $request->download === 'pdf') {
-            $pdf = Pdf::loadView('pdf.student_master_list', [
-                'students' => $students
-            ]);
-            return $pdf->download('student_master_list.pdf');
-            }
-
-            return Inertia::render('Coordinator/Reports/StudentMasterList', [
-                'students' => $students,
-                'filters' => ['status' => $filterStatus],
+    if ($request->has('download') && $request->download === 'pdf') {
+        $pdf = Pdf::loadView('pdf.student_master_list', [
+            'students' => $students
         ]);
-    }   
+        return $pdf->download('student_master_list.pdf');
+    }
+
+    return Inertia::render('Coordinator/Reports/StudentMasterList', [
+        'students' => $students,
+        'filters' => [
+            'status' => $filterStatus,
+            'course' => $filterCourse,
+            'section' => $filterSection,
+        ],
+    ]);
+}
+
 
     public function notification()
     {
@@ -566,5 +583,10 @@ public function assignStudentToInternship(Request $request)
         return response()->json([
             'report' => $report,
         ]);
+    }
+
+    public function calendar()
+    {
+        return Inertia::render('Coordinator/Calendar');
     }
 }

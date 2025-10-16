@@ -3,32 +3,32 @@ import CoordinatorLayout from "@/Layouts/Coordinator";
 import { router } from "@inertiajs/react";
 
 export default function StudentMasterList({ students, filters = {} }) {
-    // Initialize from server-provided filters (if any). Default to empty -> "All"
     const [status, setStatus] = useState(filters.status ?? "");
+    const [course, setCourse] = useState(filters.course ?? "");
+    const [section, setSection] = useState(filters.section ?? "");
 
-    // Keep local state in sync if server re-renders with a different filter
     useEffect(() => {
         setStatus(filters.status ?? "");
-    }, [filters.status]);
+        setCourse(filters.course ?? "");
+        setSection(filters.section ?? "");
+    }, [filters]);
 
-    // When user changes filter, request new list
-    const handleFilter = (e) => {
-        const newStatus = e.target.value;
-        setStatus(newStatus);
+    const handleFilter = () => {
+        const params = {};
+        if (status) params.status = status;
+        if (course) params.course = course;
+        if (section) params.section = section;
 
-        // Only include status param if a specific status is selected
-        const params = newStatus ? { status: newStatus } : {};
-
-        // Use Inertia to fetch filtered data (preserveState isn't required but can be used)
         router.get(route("student.master.list"), params, {
             preserveState: true,
         });
     };
 
-    // Download PDF (respects current filter; if status is empty -> downloads all)
     const downloadPDF = () => {
         const params = {};
         if (status) params.status = status;
+        if (course) params.course = course;
+        if (section) params.section = section;
         params.download = "pdf";
 
         const url = route("student.master.list", params);
@@ -44,19 +44,48 @@ export default function StudentMasterList({ students, filters = {} }) {
 
                     <div className="flex gap-2">
                         <select
-                            value={status}
-                            onChange={handleFilter}
+                            value={course}
+                            onChange={(e) => setCourse(e.target.value)}
                             className="border rounded px-3 py-2"
                         >
-                            <option value="">All</option>
+                            <option value="">All Courses</option>
+                            <option value="BSIT">BSIT</option>
+                            <option value="BSOA">BSOA</option>
+                            <option value="BSHM">BSHM</option>
+                        </select>
+
+                        <select
+                            value={section}
+                            onChange={(e) => setSection(e.target.value)}
+                            className="border rounded px-3 py-2"
+                        >
+                            <option value="">All Sections</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+
+                        <select
+                            value={status}
+                            onChange={(e) => setStatus(e.target.value)}
+                            className="border rounded px-3 py-2"
+                        >
+                            <option value="">All Status</option>
                             <option value="accepted">Accepted</option>
                             <option value="pending">Pending</option>
                             <option value="rejected">Rejected</option>
                         </select>
 
                         <button
-                            onClick={downloadPDF}
+                            onClick={handleFilter}
                             className="bg-blue-500 text-white px-4 py-2 rounded"
+                        >
+                            Filter
+                        </button>
+
+                        <button
+                            onClick={downloadPDF}
+                            className="bg-green-500 text-white px-4 py-2 rounded"
                         >
                             Download PDF
                         </button>
@@ -71,49 +100,34 @@ export default function StudentMasterList({ students, filters = {} }) {
                                 <th className="border px-4 py-2">#</th>
                                 <th className="border px-4 py-2">Name</th>
                                 <th className="border px-4 py-2">School ID</th>
+                                <th className="border px-4 py-2">Course</th>
+                                <th className="border px-4 py-2">Section</th>
                                 <th className="border px-4 py-2">Company</th>
                                 <th className="border px-4 py-2">Internship</th>
-                                <th className="border px-4 py-2">
-                                    Group - Section
-                                </th>
-                                <th className="border px-4 py-2">
-                                    Application Status
-                                </th>
+                                <th className="border px-4 py-2">Group - Section</th>
+                                <th className="border px-4 py-2">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {students.length > 0 ? (
                                 students.map((student, index) => (
                                     <tr key={student.id}>
-                                        <td className="border px-4 py-2">
-                                            {index + 1}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {student.name}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {student.student_id}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {student.company}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {student.internship}
-                                        </td>
-                                        <td className="border px-4 py-2">
-                                            {student.group_section}
-                                        </td>
+                                        <td className="border px-4 py-2">{index + 1}</td>
+                                        <td className="border px-4 py-2">{student.name}</td>
+                                        <td className="border px-4 py-2">{student.student_id}</td>
+                                        <td className="border px-4 py-2">{student.course}</td>
+                                        <td className="border px-4 py-2">{student.section}</td>
+                                        <td className="border px-4 py-2">{student.company}</td>
+                                        <td className="border px-4 py-2">{student.internship}</td>
+                                        <td className="border px-4 py-2">{student.group_section}</td>
                                         <td className="border px-4 py-2">
                                             <span
                                                 className={`px-2 py-1 rounded text-white text-xs ${
-                                                    student.status ===
-                                                    "accepted"
+                                                    student.status === "accepted"
                                                         ? "bg-green-500"
-                                                        : student.status ===
-                                                          "rejected"
+                                                        : student.status === "rejected"
                                                         ? "bg-red-500"
-                                                        : student.status ===
-                                                          "pending"
+                                                        : student.status === "pending"
                                                         ? "bg-yellow-500"
                                                         : "bg-gray-400"
                                                 }`}
@@ -127,7 +141,7 @@ export default function StudentMasterList({ students, filters = {} }) {
                                 <tr>
                                     <td
                                         className="border px-4 py-2 text-center"
-                                        colSpan="6"
+                                        colSpan="9"
                                     >
                                         No students found
                                     </td>

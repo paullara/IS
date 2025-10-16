@@ -71,7 +71,9 @@ Route::middleware(['auth', 'coordinator'])->group(function () {
     Route::resource('coordinators', CoordinatorController::class);
     Route::resource('courses', CourseController::class);
     Route::get('/visitation/request', [VisitationController::class, 'visitationRequest']);
-    Route::put('/visitation/update/{id}', [VisitationController::class, 'updateRequestStatus']);
+    Route::put('/visitation/update-status/{id}', [VisitationController::class, 'updateRequestStatus']);
+    Route::get('/visitation/calendar', [VisitationController::class, 'visitationCalendar']);
+    Route::get('/coordinator/calendar', [CoordinatorController::class, 'calendar'])->name('coordinator.calendar');
 });
 
 Route::middleware(['auth', 'employer'])->group(function () {
@@ -197,7 +199,7 @@ Route::get('student/courses', [StudentController::class, 'myCoursesAsStudent'])-
 Route::get('student/courses/{id}', [StudentController::class, 'show'])->name('student.courses.show');
 Route::get('/groups/{group}/documements', [GroupDocumentController::class, 'index'])->name('groups.documents.index');
 Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store'])->name('groups.documents.store');
-
+Route::get('/instructor/notifications', [InstructorController::class, 'notification'])->name('instructor.notification');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

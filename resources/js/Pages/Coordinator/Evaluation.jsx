@@ -41,9 +41,9 @@ export default function Evaluation() {
                                     <th className="px-4 py-2 border">
                                         School ID
                                     </th>
-                                    <th className="px-4 py-2 border">Score</th>
+                                    <th className="px-4 py-2 border">Total Score</th>
                                     <th className="px-4 py-2 border">
-                                        Comments
+                                        Ojt Grade
                                     </th>
                                     <th className="px-4 py-2 border">Date</th>
                                 </tr>
@@ -90,11 +90,11 @@ export default function Evaluation() {
                                                         : "bg-red-100 text-red-700"
                                                 }`}
                                             >
-                                                {evalItem.score}
+                                                {evalItem.total_score}
                                             </span>
                                         </td>
                                         <td className="px-4 py-2 border text-gray-600 italic">
-                                            {evalItem.comments || "—"}
+                                            {evalItem.ojt_grade || "—"}
                                         </td>
                                         <td className="px-4 py-2 border text-gray-500 text-xs">
                                             {new Date(

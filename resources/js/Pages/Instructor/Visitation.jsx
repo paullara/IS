@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Coordinator from "@/Layouts/Coordinator";
+import Instructor from "@/Layouts/Instructor";
 import axios from "axios";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import { format } from "date-fns";
@@ -74,7 +74,7 @@ export default function Visitation() {
     };
 
     return (
-        <Coordinator>
+        <Instructor>
             <div className="p-6 grid grid-cols-3 gap-6">
                 {/* Calendar */}
                 <div className="col-span-2">
@@ -165,6 +165,6 @@ export default function Visitation() {
                     </form>
                 </div>
             </div>
-        </Coordinator>
+        </Instructor>
     );
 }

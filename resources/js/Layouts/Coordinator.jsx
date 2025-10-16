@@ -95,6 +95,12 @@ export default function Coordinator({ header, children }) {
                     >
                         <h1 className="text-lg font-medium">Companies</h1>
                     </NavLink>
+                     <NavLink
+                        href={route("coordinator.calendar")}
+                        active={route().current("coordinator.calendar")}
+                    >
+                        <h1 className="text-lg font-medium">Calendar</h1>
+                    </NavLink>
                     <NavLink
                         href={route("coordinator.visitation")}
                         active={route().current("coordinator.visitation")}

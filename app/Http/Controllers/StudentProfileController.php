@@ -67,7 +67,7 @@ class StudentProfileController extends Controller
 
         $internships = Internship::with('employer')
             ->where('status', 'open')
-            ->whereDate('end_date', '>=', $today) // still available
+            ->whereDate('end_date', '>=', $today)
             ->latest()
             ->get();
         
