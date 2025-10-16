@@ -8,14 +8,21 @@ class Visitation extends Model
 {
     protected $fillable = [
         'company_id',
-        'coordinator_id',
+        'instructor_id',
         'visitation_date',
-        'remarks'
+        'remarks',
+        'status',
+       
     ];
 
     public function company()
     {
         return $this->belongsTo(User::class, 'company_id');
+    }
+
+    public function instructor()
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
     }
 
     public function coordinator()

@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('visitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('coordinator_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('instructor_id')->constrained('users')->onDelete('cascade');
             $table->date('visitation_date');
             $table->text('remarks')->nullable();
+             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
         });
     }

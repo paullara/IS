@@ -8,6 +8,7 @@ export default function EditProfile({ student }) {
         middlename: student?.middlename || "",
         lastname: student?.lastname || "",
         school_id: student?.school_id || "",
+        course: student?.course || "",
         year_level: student?.year_level || "4th",
         skills: student?.skills || "",
         bio: student?.bio || "",
@@ -127,6 +128,22 @@ export default function EditProfile({ student }) {
                             type="text"
                             name="school_id"
                             value={formData.school_id}
+                            onChange={handleChange}
+                            className="border p-2 w-full rounded"
+                        />
+                        {errors.school_id && (
+                            <p className="text-red-500">{errors.school_id}</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Course
+                        </label>
+                        <input
+                            type="text"
+                            name="course"
+                            value={formData.course}
                             onChange={handleChange}
                             className="border p-2 w-full rounded"
                         />

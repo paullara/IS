@@ -31,7 +31,7 @@ class VisitationController extends Controller
 
         $visitation = Visitation::create([
             'company_id' => $request->company_id,
-            'coordinator_id' => Auth::id(),
+            'instructor_id' => Auth::id(),
             'visitation_date' => $request->visitation_date,
             'remarks' => $request->remarks
         ]);
@@ -42,10 +42,25 @@ class VisitationController extends Controller
         ]);
     }
 
+    public function visitationRequest()
+    {
+        $visitations = Visitation::with('instructor', 'company')->get();
+
+        return response()->json([
+            'visitations' => $visitations,
+        ]);
+    }
+
+    public function updateRequestStatus($id)
+    {
+        
+    }
+
     public function visitation()
     {
         $visitations = Visitation::with('company')
-            ->where('coordinator_id', Auth()->id())
+            ->where('instructor_id', Auth()->id()) 
+            ->where('status', 'approved')
             ->orderBy('visitation_date','asc')
             ->get();
 

@@ -13,6 +13,11 @@ class InstructorController extends Controller
         return Inertia::render('Instructor/Dashboard');
     }
 
+    public function visitation()
+    {
+        return Inertia::render('Instructor/Visitation');
+    }
+
     public function myCoursesAsInstructor()
     {
         $user = auth()->user();

@@ -266,13 +266,14 @@ public function updateMe(Request $request, User $user)
         'school_id'  => 'sometimes|string|max:255|unique:users,school_id,' . $user->id,
         'year_level' => 'sometimes|string|max:255',
         'skills'     => 'sometimes|nullable|string',
+        'course'     => 'sometimes|nullable|string',
         'bio'        => 'sometimes|nullable|string|max:1000',
         'section'    => 'sometimes|nullable|string:max:20',
     ]);
 
     $data = $request->only([
         'firstname', 'middlename', 'lastname', 'school_id',
-        'year_level', 'skills', 'bio', 'section',
+        'year_level', 'skills', 'bio', 'section', 'course'
     ]);
 
     if ($request->hasFile('picture')) {

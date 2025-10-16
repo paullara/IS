@@ -59,7 +59,7 @@ Route::post('/admin/notifications/read/{id}', function ($id) {
 //     return Inertia::render('Dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Admin Verification Routes
+// Coordinator Verification Routes
 Route::middleware(['auth', 'coordinator'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/admin/verification', [AdminController::class, 'studentList'])->name('admin.verification');
@@ -70,6 +70,8 @@ Route::middleware(['auth', 'coordinator'])->group(function () {
     Route::get('/admin/notifications', [AdminController::class, 'notification'])->name('admin.notification');
     Route::resource('coordinators', CoordinatorController::class);
     Route::resource('courses', CourseController::class);
+    Route::get('/visitation/request', [VisitationController::class, 'visitationRequest']);
+    Route::put('/visitation/update/{id}', [VisitationController::class, 'updateRequestStatus']);
 });
 
 Route::middleware(['auth', 'employer'])->group(function () {
@@ -127,6 +129,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile/{user}', [StudentProfileController::class, 'updateMe'])->name('student.profile.update');
     Route::get('/internships/offer', [StudentProfileController::class, 'getInternships']);
     Route::get('/existing/application', [ApplicationController::class, 'getExistingApplications']);
+    Route::get('/instructor/visitation', [InstructorController::class, 'visitation'])->name('instructor.visitation');
 });
 
 // Student group list and group show routes
@@ -170,7 +173,7 @@ Route::get('/company/all', [CoordinatorController::class, 'companies'])->name('c
 Route::get('/visitation', [CoordinatorController::class, 'visitation'])->name('coordinator.visitation');
 Route::get('/visitation/companies', [VisitationController::class, 'companies']);
 Route::post('/visitation/store', [VisitationController::class, 'store']);
-Route::get('/visitations', [VisitationController::class, 'visitation']);
+Route::get('/visitations/json', [VisitationController::class, 'visitation']);
 Route::get('/get/instructor', [CoordinatorController::class, 'getInstructors']);
 Route::get('/student/master/list', [CoordinatorController::class, 'studentMasterList'])->name('student.master.list');
 Route::get('/reports/student-masterlist/download', [ReportController::class, 'downloadStudentMasterList'])->name('reports.student-masterlist.download');
@@ -194,6 +197,7 @@ Route::get('student/courses', [StudentController::class, 'myCoursesAsStudent'])-
 Route::get('student/courses/{id}', [StudentController::class, 'show'])->name('student.courses.show');
 Route::get('/groups/{group}/documements', [GroupDocumentController::class, 'index'])->name('groups.documents.index');
 Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store'])->name('groups.documents.store');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
