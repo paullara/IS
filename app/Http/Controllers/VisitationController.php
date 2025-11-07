@@ -45,7 +45,9 @@ class VisitationController extends Controller
 
     public function visitationRequest()
     {
-        $visitations = Visitation::with('instructor', 'company')->get();
+        $visitations = Visitation::with('instructor', 'company')
+            ->where('status', 'pending')
+        ->get();
 
         return response()->json([
             'visitations' => $visitations,

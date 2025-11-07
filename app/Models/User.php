@@ -36,6 +36,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at',
         'status',
         'section',
+        'moa_status',
     ];
 
     /**
@@ -115,6 +116,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Group::class, 'instructor_id');
     }
+
+    public function instructorGroups()
+    {
+        return $this->belongsToMany(InstructorGroup::class, 'instructor_group_user', 'user_id', 'instructor_group_id')
+                    ->withTimestamps();
+    }
+
 
     public function visitation()
     {

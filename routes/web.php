@@ -6,6 +6,9 @@ use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\InstructorDocumentController;
+use App\Http\Controllers\InstructorGroupController;
+use App\Http\Controllers\MoaUpdateController;
 use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\GroupDocumentController;
 use App\Http\Controllers\IncidentReportController;
@@ -74,6 +77,9 @@ Route::middleware(['auth', 'coordinator'])->group(function () {
     Route::put('/visitation/update-status/{id}', [VisitationController::class, 'updateRequestStatus']);
     Route::get('/visitation/calendar', [VisitationController::class, 'visitationCalendar']);
     Route::get('/coordinator/calendar', [CoordinatorController::class, 'calendar'])->name('coordinator.calendar');
+    Route::get('/coordinator/moa-status', [MoaUpdateController::class, 'moaStatus'])->name('coordinator.moaStatus');
+    Route::get('/coordinator/students-json', [MoaUpdateController::class, 'studentsJson']);
+    Route::put('/coordinator/update-moa-status/{id}', [MoaUpdateController::class, 'updateMoaStatus']);
 });
 
 Route::middleware(['auth', 'employer'])->group(function () {
@@ -197,9 +203,32 @@ Route::get('instructor/courses', [InstructorController::class, 'myCoursesAsInstr
 Route::get('instructor/courses/{id}', [InstructorController::class, 'show'])->name('courses.show');
 Route::get('student/courses', [StudentController::class, 'myCoursesAsStudent'])->name('student.courses');
 Route::get('student/courses/{id}', [StudentController::class, 'show'])->name('student.courses.show');
-Route::get('/groups/{group}/documements', [GroupDocumentController::class, 'index'])->name('groups.documents.index');
+Route::get('/groups/{group}/documents', [GroupDocumentController::class, 'index'])->name('groups.documents.index');
 Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store'])->name('groups.documents.store');
 Route::get('/instructor/notifications', [InstructorController::class, 'notification'])->name('instructor.notification');
+// Coordinator group routes
+Route::get('/coordinator/groups/{group}', [InstructorGroupController::class, 'showInstructorGroup'])
+    ->name('coordinator.groups.show');
+Route::get('/coordinator/groups/instructor/create', [InstructorGroupController::class, 'create'])
+    ->name('coordinator.groups.create');
+Route::get('/coordinator/list/group', [InstructorGroupController::class, 'index'])
+    ->name('coordinator.groups.index');
+Route::post('/coordinator/store/group', [InstructorGroupController::class, 'store'])
+    ->name('coordinator.groups.store');
+// ✅ Corrected route for assigning instructors
+Route::post('/coordinator/groups/{group}/assign-instructors', [InstructorGroupController::class, 'assignInstructors'])
+    ->name('coordinator.groups.assignInstructors');
+Route::get('/coordinator/groups/{group}/fetch', [InstructorGroupController::class, 'fetchGroupData'])
+    ->name('coordinator.groups.fetch');
+
+Route::get('/coordinator/search-instructors', [InstructorGroupController::class, 'searchInstructors'])
+    ->name('coordinator.instructors.search');
+Route::get('/coordinator/{instructorGroup}/documents', [InstructorDocumentController::class, 'index']);
+Route::post('/coordinator/{instructorGroup}/documents', [InstructorDocumentController::class, 'store']);
+
+
+Route::get('/instructors/groups', [InstructorController::class, 'instructorGroup'])->name('instructor.instructorGroup');
+ Route::get('/groups/{group}', [InstructorController::class, 'showInstructorGroup'])->name('instructor.groups.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

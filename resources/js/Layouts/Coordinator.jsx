@@ -65,6 +65,21 @@ export default function Coordinator({ header, children }) {
                             Monitor Evaluation
                         </h1>
                     </NavLink>
+                    <NavLink
+                        href={route("coordinator.groups.index")}
+                        active={route().current("coordinator.groups.index")}
+                    >
+                        <h1 className="text-lg font-medium">
+                            Instructor Group
+                        </h1>
+                    </NavLink>
+                    <NavLink
+                        href={route("coordinator.moaStatus")}
+                        active={route().current("coordinator.groups.index")}
+                    >
+                        <h1 className="text-lg font-medium">Moa Status</h1>
+                    </NavLink>
+
                     {/* <NavLink
                         href={route("coordinator.groups.create")}
                         active={route().current("coordinator.groups.create")}
@@ -81,7 +96,7 @@ export default function Coordinator({ header, children }) {
                         href={route("coordinator.groups")}
                         active={route().current("coordinator.groups")}
                     >
-                        <h1 className="text-lg font-medium">Groups</h1>
+                        <h1 className="text-lg font-medium">Interns Groups</h1>
                     </NavLink>
                     <NavLink
                         href={route("coordinator.verifications")}
@@ -95,7 +110,7 @@ export default function Coordinator({ header, children }) {
                     >
                         <h1 className="text-lg font-medium">Companies</h1>
                     </NavLink>
-                     <NavLink
+                    <NavLink
                         href={route("coordinator.calendar")}
                         active={route().current("coordinator.calendar")}
                     >
@@ -187,7 +202,9 @@ export default function Coordinator({ header, children }) {
                             </div>
 
                             <div className="hidden sm:flex sm:items-center">
-                                <div className="relative ms-3">{user.name}</div>
+                                <div className="relative ms-3">
+                                    {user.firstname}
+                                </div>
                             </div>
                         </div>
                     </div>

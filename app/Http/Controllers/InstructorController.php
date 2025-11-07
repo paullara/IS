@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
+use App\Models\InstructorGroup;
 use Inertia\Inertia;
 
 class InstructorController extends Controller
@@ -50,4 +52,33 @@ class InstructorController extends Controller
                 'documents' => $course->documents,
         ]);
     }
+
+   public function instructorGroup()
+{
+    $user = Auth::user();
+
+    $instructorGroups = $user->instructorGroups()->get();
+        
+    return Inertia::render('Instructor/InstructorGroup', [
+        'instructorGroups' => $instructorGroups,
+    ]);
+}
+
+
+    public function showInstructorGroup(InstructorGroup $group)
+{
+    $group->load(['coordinator', 'instructors', 'documents']);
+
+    $documents = $group->documents->map(fn($doc) => [
+        'id' => $doc->id,
+        'name' => $doc->original_name,
+        'url' => asset('storage/' . $doc->file_path),
+    ]);
+
+    return Inertia::render('Instructor/InstructorGroupShow', [
+        'group' => $group,
+        'documents' => $documents,
+    ]);
+}
+
 }

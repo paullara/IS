@@ -14,7 +14,7 @@ class StudentController extends Controller
     public function groups()
     {
         $user = auth()->user();
-        $groups = $user->groups()->with(['instructor', 'students.studentProfile'])->get();
+        $groups = $user->groups()->with(['instructor', 'students'])->get();
         return Inertia::render('Groups', [
             'groups' => $groups,
         ]);

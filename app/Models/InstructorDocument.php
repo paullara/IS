@@ -4,22 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class GroupDocument extends Model
+class InstructorDocument extends Model
 {
     protected $fillable = [
-        'group_id',
+        'instructor_group_id',
         'uploaded_by',
         'original_name',
         'file_path',
     ];
 
-    public function group()
+    public function instructorGroup()
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(InstructorGroup::class);
     }
-    
+
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
+
 }
