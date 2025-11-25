@@ -22,7 +22,7 @@ class StudentController extends Controller
 
     public function showGroup(Group $group)
     {
-        $group->load(['instructor', 'students.studentProfile']);
+        $group->load(['instructor', 'students']);
 
         // Load documents and transform them
         $documents = $group->documents()->get()->map(function ($doc) {
@@ -33,7 +33,7 @@ class StudentController extends Controller
             ];
         });
 
-        $users = User::select('id', 'name', 'role')->get();
+        $users = User::select('id', 'firstname', 'role')->get();
 
         return Inertia::render('GroupShow', [
             'group' => $group,

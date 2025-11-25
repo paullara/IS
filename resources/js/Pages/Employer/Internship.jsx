@@ -1,7 +1,36 @@
 import EmployerLayout from "@/Layouts/EmployerLayout";
+import { useState, useEffect } from "react";
 import { Link } from "@inertiajs/react";
+import axios from "axios";
 
-export default function Index({ internships }) {
+export default function Index({}) {
+    const [internships, setInternships] = useState([]);
+
+    useEffect(() => {
+        const fetchInternships = async () => {
+            try {
+                const res = await axios.get("/internships/json");
+                setInternships(res.data.internships);
+            } catch (err) {
+                console.error("Failed to fetch.");
+            }
+        };
+
+        fetchInternships();
+        const interval = setInterval(fetchInternships, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleDelete = async (id) => {
+        if (!confirm("Delete this internship?")) return;
+
+        try {
+            await axios.delete(`/internships/${id}`);
+            setInternships(internships.filter((p) => p.id !== id));
+        } catch (err) {
+            console.error("Failed to delete");
+        }
+    };
     return (
         <EmployerLayout>
             <div className="max-w-6xl mx-auto p-6">
@@ -65,7 +94,7 @@ export default function Index({ internships }) {
                                     >
                                         Edit
                                     </Link>
-                                    <Link
+                                    {/* <Link
                                         href={route(
                                             "internships.destroy",
                                             internship.id
@@ -75,7 +104,15 @@ export default function Index({ internships }) {
                                         className="w-48 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm transition"
                                     >
                                         Delete
-                                    </Link>
+                                    </Link> */}
+                                    <button
+                                        onClick={() =>
+                                            handleDelete(internship.id)
+                                        }
+                                        className="w-48 bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm transition"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         ))}

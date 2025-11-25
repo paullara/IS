@@ -120,7 +120,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
     useEffect(() => {
         let isMounted = true;
         const fetchMessages = () => {
-            fetch(`/groups/${group.id}/messages`)
+            fetch(`/instructor-groups/${group.id}/messages`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (isMounted) setMessages(data);
@@ -138,7 +138,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         e.preventDefault();
         if (!newMessage.trim()) return;
         setLoading(true);
-        fetch(`/groups/${group.id}/messages`, {
+        fetch(`/instructor-groups/${group.id}/messages`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -267,7 +267,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                                                 ).toLocaleString()}
                                         </span>
                                         <p className="ml-2 text-gray-700">
-                                            {msg.content}
+                                            {msg.message}
                                         </p>
                                     </div>
                                 ))

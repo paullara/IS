@@ -34,7 +34,9 @@ export default function Requirements({ requirements }) {
                                     className="hover:bg-gray-50 transition"
                                 >
                                     <td className="border px-4 py-3">
-                                        {requirement.user.name}
+                                        {requirement.user.firstname} {""}
+                                        {requirement.user.middlename} {""}
+                                        {requirement.user.lastname}
                                     </td>
                                     <td className="border px-4 py-3 capitalize">
                                         {requirement.status}

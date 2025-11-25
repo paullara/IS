@@ -91,6 +91,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Applications
                                 </NavLink>
+                                <NavLink
+                                    href={route("student.groups")}
+                                    active={route().current("student.groups")}
+                                >
+                                    Groups
+                                </NavLink>
                             </div>
 
                             {/* User Dropdown */}

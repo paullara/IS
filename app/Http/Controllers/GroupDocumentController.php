@@ -15,13 +15,17 @@ class GroupDocumentController extends Controller
             'document' => 'required|file|mimes:pdf,doc,docx,png,jpg,jpeg',
         ]);
         $file = $request->file('document');
-        $path = $file->store('group_documents', 'public');
+        $filename = uniqid() . '_' . $file->getClientOriginalName();
+
+        $file->move(public_path('documents'), $filename);
+
         $doc = GroupDocument::create([
             'group_id' => $group->id,
             'uploaded_by' => Auth::id(),
             'original_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
+            'file_path' => 'documents/' . $filename,
         ]);
+
         return response()->json([
             'id' => $doc->id,
             'name' => $doc->original_name,
@@ -43,11 +47,13 @@ class GroupDocumentController extends Controller
 
     public function download(GroupDocument $document)
     {
-        // Serve from public/group_documents/ instead of storage/app/public/group_documents/
-        $publicPath = public_path('group_documents/' . basename($document->file_path));
+        $publicPath = public_path($document->file_path);
+
         if (!file_exists($publicPath)) {
-            abort(404);
+            abort(404, "File not found.");
         }
+
         return response()->download($publicPath, $document->original_name);
     }
+
 }

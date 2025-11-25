@@ -105,7 +105,7 @@ export default function Groups({
                     {groups.map((group) => (
                         <Link
                             key={group.id}
-                            href={route("groups.show", group.id)}
+                            href={route("interns.groups.show", group.id)}
                             className="block border rounded p-3 mb-2 hover:bg-gray-50"
                         >
                             <div className="font-bold">{group.name}</div>

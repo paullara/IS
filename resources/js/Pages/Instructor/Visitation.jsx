@@ -67,7 +67,7 @@ export default function Visitation() {
             setRemarks("");
             setSelectedDate(null);
             fetchVisitations();
-            alert("Visitation scheduled!");
+            alert("Visitation request submitted!");
         } catch (error) {
             console.error("Error scheduling visitation.", error);
         }

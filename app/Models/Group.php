@@ -26,4 +26,9 @@ class Group extends Model
     {
         return $this->hasMany(GroupDocument::class);
     }
+    
+    public function messages()
+    {
+        return $this->morphMany(Message::class, 'messageable');
+    }
 }

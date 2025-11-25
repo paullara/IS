@@ -14,6 +14,8 @@ use App\Http\Controllers\GroupDocumentController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\GroupMessageController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\GroupController;
@@ -99,7 +101,8 @@ Route::middleware(['auth', 'employer'])->group(function () {
     Route::post('/employer/internships', [InternshipController::class, 'store'])->name('internships.store');
     Route::get('/employer/internships/{internship}/edit', [InternshipController::class, 'edit'])->name('internships.edit');
     Route::patch('/employer/internships/{internship}', [InternshipController::class, 'update'])->name('internships.update');
-    Route::delete('/internships/{internship}', [InternshipController::class, 'destroy'])->name('internships.destroy');
+    Route::delete('/internships/{id}', [InternshipController::class, 'destroy'])->name('internships.destroy');
+    Route::get('/internships/json', [InternshipController::class, 'fetchInternships']);
     Route::get('/employer/applicants', [EmployerController::class, 'applicants'])->name('employer.applicants');
     Route::get('/employer/applicants/{student}', [EmployerController::class, 'viewProfile']);
     Route::put('/employer/applications/{id}/status', [EmployerController::class, 'updateStatus']);
@@ -143,7 +146,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Student group list and group show routes
 Route::get('/student/groups', [\App\Http\Controllers\StudentController::class, 'groups'])->name('student.groups');
 Route::get('/student/groups/{group}', [\App\Http\Controllers\StudentController::class, 'showGroup'])->name('student.groups.show');
-Route::get('/groups/{group}', [GroupController::class, 'showGroup'])->name('groups.show');
+// Route::get('/groups/{group}', [GroupController::class, 'showGroup'])->name('groups.show');
+Route::get('/instructor/groups/{group}', [InstructorController::class, 'showMyGroup'])->name('interns.groups.show');
+Route::get('/groups/{group}/students/search', [GroupController::class, 'searchAvailableStudents']);
+
 Route::get('/coordinator/dashboard', [CoordinatorController::class, 'dashboard'])->name('coordinator.dashboard');
 Route::get('/instructors', [CoordinatorController::class, 'indexInstructor'])->name('instructor.list');
 Route::get('/coordinator/instructors/create', [CoordinatorController::class, 'createInstructor'])->name('coordinator.instructors.create');
@@ -197,14 +203,19 @@ Route::get('instructor/dashboard', [InstructorController::class, 'dashboard'])->
 Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
 Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
 Route::post('/groups/{group}/assign-students', [GroupController::class, 'assignStudents']);
-Route::get('/groups/{group}/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('groups.messages.index');
-Route::post('/groups/{group}/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('groups.messages.store');
+Route::get('/groups/{group}/messages', [MessageController::class, 'index'])->name('groups.messages.index');
+Route::post('/groups/{group}/messages', [MessageController::class, 'store'])->name('groups.messages.store');
+
+Route::get('/instructor-groups/{group}/messages', [GroupMessageController::class, 'index'])->name('instructor-groups.messages.index');
+Route::post('/instructor-groups/{group}/messages', [GroupMessageController::class, 'store'])->name('instructor-groups.messages.store');
+
 Route::get('instructor/courses', [InstructorController::class, 'myCoursesAsInstructor'])->name('instructor.courses');
 Route::get('instructor/courses/{id}', [InstructorController::class, 'show'])->name('courses.show');
 Route::get('student/courses', [StudentController::class, 'myCoursesAsStudent'])->name('student.courses');
 Route::get('student/courses/{id}', [StudentController::class, 'show'])->name('student.courses.show');
 Route::get('/groups/{group}/documents', [GroupDocumentController::class, 'index'])->name('groups.documents.index');
 Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store'])->name('groups.documents.store');
+Route::get('/group-documents/{id}/download', [GroupDocumentController::class, 'download'])->name('group-documents.download');
 Route::get('/instructor/notifications', [InstructorController::class, 'notification'])->name('instructor.notification');
 // Coordinator group routes
 Route::get('/coordinator/groups/{group}', [InstructorGroupController::class, 'showInstructorGroup'])
@@ -228,7 +239,7 @@ Route::post('/coordinator/{instructorGroup}/documents', [InstructorDocumentContr
 
 
 Route::get('/instructors/groups', [InstructorController::class, 'instructorGroup'])->name('instructor.instructorGroup');
- Route::get('/groups/{group}', [InstructorController::class, 'showInstructorGroup'])->name('instructor.groups.show');
+Route::get('/groups/{group}', [InstructorController::class, 'showInstructorGroup'])->name('instructor.groups.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

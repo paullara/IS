@@ -57,11 +57,14 @@ class VisitationController extends Controller
     public function updateRequestStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:approved,rejected'
+            'status' => 'required|in:approved,rejected',
+            'remarks' => 'nullable|string|max:500'
         ]);
 
         $visitation = Visitation::with('instructor', 'company')->findOrFail($id);
+
         $visitation->status = $request->status;
+        $visitation->remarks = $request->remarks; // store remarks
         $visitation->save();
 
         $instructor = $visitation->instructor;
@@ -69,19 +72,28 @@ class VisitationController extends Controller
 
         // Notify Instructor
         if ($request->status === 'approved') {
-            $instructor->notify(new \App\Notifications\VisitationStatusNotification(
-                "Your visitation request to {$company->company_name} has been approved by the coordinator."
-            ));
+            $instructor->notify(
+                new \App\Notifications\VisitationStatusNotification(
+                    "Your visitation request to {$company->company_name} has been APPROVED by the coordinator."
+                )
+            );
 
-            // Notify Company only if approved
-            $company->notify(new \App\Notifications\VisitationStatusNotification(
-                "There will be a visitation from {$instructor->firstname} on {$visitation->visitation_date}."
-            ));
+            // Notify company only if approved
+            $company->notify(
+                new \App\Notifications\VisitationStatusNotification(
+                    "There will be a visitation from {$instructor->firstname} on {$visitation->visitation_date}."
+                )
+            );
+
         } else {
-            // If rejected, notify only instructor
-            $instructor->notify(new \App\Notifications\VisitationStatusNotification(
-                "Your visitation request to {$company->company_name} was rejected by the coordinator."
-            ));
+            // If rejected, include remarks in notification
+            $reason = $request->remarks ? " Reason: {$request->remarks}" : "";
+
+            $instructor->notify(
+                new \App\Notifications\VisitationStatusNotification(
+                    "Your visitation request to {$company->company_name} was REJECTED by the coordinator." . $reason
+                )
+            );
         }
 
         return response()->json([
@@ -89,6 +101,7 @@ class VisitationController extends Controller
             'visitation' => $visitation,
         ]);
     }
+
 
     public function visitation()
     {

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Course;
 use App\Models\InstructorGroup;
+use App\Models\Group;
 use Inertia\Inertia;
 
 class InstructorController extends Controller
@@ -66,19 +67,37 @@ class InstructorController extends Controller
 
 
     public function showInstructorGroup(InstructorGroup $group)
-{
-    $group->load(['coordinator', 'instructors', 'documents']);
+    {
+        $group->load(['coordinator', 'instructors', 'documents']);
 
-    $documents = $group->documents->map(fn($doc) => [
-        'id' => $doc->id,
-        'name' => $doc->original_name,
-        'url' => asset('storage/' . $doc->file_path),
-    ]);
+        $documents = $group->documents->map(fn($doc) => [
+            'id' => $doc->id,
+            'name' => $doc->original_name,
+            'url' => asset('storage/' . $doc->file_path),
+        ]);
 
-    return Inertia::render('Instructor/InstructorGroupShow', [
-        'group' => $group,
-        'documents' => $documents,
-    ]);
-}
+        return Inertia::render('Instructor/InstructorGroupShow', [
+            'group' => $group,
+            'documents' => $documents,
+        ]);
+    }
+
+    public function showMyGroup(Group $group)
+    {
+        $group->load(['instructor', 'students']);
+
+        $documents = $group->documents()->get()->map(function ($doc) {
+            return [
+                'id' => $doc->id,
+                'name' => $doc->original_name,
+                'url' => asset('storage/' . $doc->file_path),
+            ];
+        });
+
+        return Inertia::render('Instructor/TestGroupShow', [
+            'group' => $group,
+            'documents' => $documents,
+        ]);
+    }
 
 }

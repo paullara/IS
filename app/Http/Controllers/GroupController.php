@@ -42,7 +42,7 @@ class GroupController extends Controller
         $group->students()->syncWithoutDetaching($request->student_ids);
 
         return redirect()
-            ->route('groups.show', $group)
+            ->route('interns.groups.show', $group)
             ->with('success', 'Students assigned successfully.');
     }
 
@@ -95,5 +95,29 @@ class GroupController extends Controller
             'users' => $users,
             'documents' => $documents,
         ]);
+    }
+
+    public function searchAvailableStudents(Request $request, Group $group)
+    {
+        $search = $request->query('q', ''); // Get search query
+        $query = User::query()
+            ->where('role', 'student') // Only students
+            ->whereDoesntHave('groups', function ($q) use ($group) {
+                $q->where('group_id', $group->id);
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('firstname', 'like', "%{$search}%")
+                ->orWhere('lastname', 'like', "%{$search}%")
+                ->orWhere('middlename', 'like', "%{$search}%")
+                ->orWhere('section', 'like', "%{$search}%")
+                ->orWhere('company_name', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $query->select('id', 'firstname', 'middlename', 'lastname', 'section', 'company_name')->get();
+
+        return response()->json($students);
     }
 }

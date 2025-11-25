@@ -1,12 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import { Head, Link } from "@inertiajs/react";
 import EmployerLayout from "@/Layouts/EmployerLayout";
 import { Inertia } from "@inertiajs/inertia";
 
 export default function RequirementDetails({ requirement }) {
+    const [status, setStatus] = useState(requirement.status);
+
     const handleAction = (action) => {
-        Inertia.post(`/employer/requirement/${requirement.id}/${action}`);
+        Inertia.post(
+            `/employer/requirement/${requirement.id}/${action}`,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: false,
+                onSuccess: (page) => {
+                    // Use returned JSON to update status
+                    if (page.props && page.props.status) {
+                        setStatus(page.props.status);
+                    }
+                },
+                onError: (errors) => {
+                    console.error(errors);
+                },
+            }
+        );
     };
+
+    const fullname = `${requirement.user.firstname} ${requirement.user.middlename} ${requirement.user.lastname}`;
 
     return (
         <EmployerLayout>
@@ -23,9 +43,10 @@ export default function RequirementDetails({ requirement }) {
                 <h1 className="text-3xl font-bold mb-10 text-center">
                     Requirement Details
                 </h1>
+
                 <section className="bg-white border rounded-2xl p-6 shadow-sm mb-8 space-y-4">
-                    <InfoRow label="Student" value={requirement.user.name} />
-                    <InfoRow label="Status" value={requirement.status} />
+                    <InfoRow label="Student" value={fullname} />
+                    <InfoRow label="Status" value={status} />
                 </section>
 
                 {/* Documents section */}
@@ -68,7 +89,7 @@ export default function RequirementDetails({ requirement }) {
                     )}
                 </section>
 
-                {requirement.status === "pending" && (
+                {status === "pending" && (
                     <div className="flex justify-center gap-6 mt-10">
                         <button
                             onClick={() => handleAction("approve")}

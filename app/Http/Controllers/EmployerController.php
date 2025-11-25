@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Notifications\ApplicationStatusNotification;
+use App\Notifications\RequirementStatusChanged;
 use App\Models\InternshipRequirement;
 use App\Models\CompanyApplication;
 use App\Models\Internship;
@@ -13,7 +14,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\StudentProfile;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class EmployerController extends Controller
 {
@@ -210,23 +213,31 @@ class EmployerController extends Controller
         ]);
     }
 
-    public function approveRequirement($id)
-    {
-        $requirement = InternshipRequirement::findOrFail($id);
-        $requirement->status = 'approved';
-        $requirement->save();
+   public function approveRequirement($id)
+{
+    $requirement = InternshipRequirement::findOrFail($id);
+    $requirement->status = 'approved';
+    $requirement->save();
 
-        return redirect()->back()->with('message', 'Requirement approved successfully.');
-    }
+    // Notify student
+    $student = $requirement->user; // because you defined relationship
+    $student->notify(new RequirementStatusChanged($requirement, 'approved'));
 
-    public function rejectRequirement($id)
-    {
-        $requirement = InternshipRequirement::findOrFail($id);
-        $requirement->status = 'rejected';
-        $requirement->save();
+    return Inertia::location(route('employer.requirements.index'));
+}
 
-        return redirect()->back()->with('message', 'Requirement rejected successfully.');
-    }
+public function rejectRequirement($id)
+{
+    $requirement = InternshipRequirement::findOrFail($id);
+    $requirement->status = 'rejected';
+    $requirement->save();
+
+    // Notify student
+    $student = $requirement->user;
+    $student->notify(new RequirementStatusChanged($requirement, 'rejected'));
+
+    return Inertia::location(route('employer.requirements.index'));
+}
 
     public function getInterns()
     {

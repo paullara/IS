@@ -18,6 +18,17 @@ class InternshipController extends Controller
         ]);
     }
 
+    public function fetchInternships()
+    {
+        $internships = Internship::where('employer_id', auth()->id())
+            ->latest()
+            ->get();
+        
+        return response()->json([
+            'internships' => $internships,
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('Employer/JobPosting');
@@ -74,10 +85,14 @@ class InternshipController extends Controller
         return redirect()->route('internships.index');
     }
 
-    public function destroy(Internship $internship)
+    public function destroy($id)
     {
+        $internship = Internship::findOrFaiL($id);
+        
         $internship->delete();
 
-        return redirect()->route('internships.index')->with('success', 'Internship deleted');
+        return response()->json([
+            'message' => 'deleted'
+        ]);
     }
 }

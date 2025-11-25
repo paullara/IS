@@ -1,6 +1,7 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Inertia } from "@inertiajs/inertia";
+import { Link } from "@inertiajs/react";
 
 export default function StudentGroups({ groups = [] }) {
     return (
@@ -13,34 +14,13 @@ export default function StudentGroups({ groups = [] }) {
                     </div>
                 )}
                 {groups.map((group) => (
-                    <div
+                    <Link
                         key={group.id}
-                        className="border rounded p-3 mb-2 cursor-pointer hover:bg-gray-50"
-                        onClick={() =>
-                            Inertia.get(`/student/groups/${group.id}`)
-                        }
+                        href={route("student.groups.show", group.id)}
+                        className="block border rounded p-3 mb-2 hover:bg-gray-50"
                     >
                         <div className="font-bold">{group.name}</div>
-                        <div className="text-sm text-gray-600 mb-2">
-                            Instructor: {group.instructor?.name}
-                        </div>
-                        <div className="text-sm text-gray-600">Students:</div>
-                        <ul className="list-disc ml-6">
-                            {(group.students || []).map((s) => (
-                                <li key={s.id}>
-                                    {s.student_profile
-                                        ? s.student_profile.first_name +
-                                          " " +
-                                          (s.student_profile.middle_name
-                                              ? s.student_profile.middle_name +
-                                                " "
-                                              : "") +
-                                          s.student_profile.last_name
-                                        : s.name}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </AuthenticatedLayout>

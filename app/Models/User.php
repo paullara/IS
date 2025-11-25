@@ -123,7 +123,6 @@ class User extends Authenticatable implements MustVerifyEmail
                     ->withTimestamps();
     }
 
-
     public function visitation()
     {
         return $this->hasMany(Visitation::class);

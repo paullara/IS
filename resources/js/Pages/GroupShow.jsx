@@ -63,51 +63,13 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                 <span className="font-semibold">
                                     Instructor:
                                 </span>{" "}
-                                {group.instructor?.name}
+                                {group.instructor?.firstname}{" "}
+                                {group.instructor?.lastname}
                             </div>
                         </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-8 flex-1 px-4 md:px-0 pb-8">
-                        {/* Students Section */}
-                        <div className="flex-1 min-w-[250px]">
-                            <h2 className="text-xl font-bold text-blue-700 mb-2">
-                                Students
-                            </h2>
-                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 list-none">
-                                {(group.students || []).map((s) => (
-                                    <li
-                                        key={s.id}
-                                        className="bg-blue-50 rounded px-4 py-2 flex items-center gap-2"
-                                    >
-                                        <span className="text-blue-900 font-semibold">
-                                            {s.student_profile
-                                                ? `${
-                                                      s.student_profile
-                                                          .first_name
-                                                  } ${
-                                                      s.student_profile
-                                                          .middle_name
-                                                          ? s.student_profile
-                                                                .middle_name +
-                                                            " "
-                                                          : ""
-                                                  }${
-                                                      s.student_profile
-                                                          .last_name
-                                                  }`
-                                                : s.name}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                            {group.students?.length === 0 && (
-                                <div className="text-gray-400 italic mt-2">
-                                    No students assigned yet.
-                                </div>
-                            )}
-                        </div>
-
                         {/* Documents Section */}
                         <div className="flex-1 min-w-[250px]">
                             <h2 className="text-xl font-bold text-blue-700 mb-2">
@@ -151,7 +113,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                 {messages.map((msg) => (
                                     <div key={msg.id} className="mb-2">
                                         <span className="font-semibold text-blue-800">
-                                            {msg.user?.name || "Unknown"}
+                                            {msg.user?.firstname || "Unknown"}
                                         </span>
                                         <span className="text-xs text-gray-500 ml-2">
                                             {msg.created_at &&

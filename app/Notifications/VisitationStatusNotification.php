@@ -18,7 +18,7 @@ class VisitationStatusNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database']; // store in database
+        return ['database'];
     }
 
     public function toArray($notifiable)

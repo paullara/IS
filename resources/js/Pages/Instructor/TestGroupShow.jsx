@@ -12,42 +12,23 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Search & Assign Students
     const [search, setSearch] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
 
-    // Pre-select already assigned students
     const { data, setData, post, processing, errors } = useForm({
-        student_ids: users
-            .filter((u) => u.assigned)
-            .map((u) => u.id.toString()),
+        student_ids: users.filter((u) => u.assigned).map((u) => u.id),
     });
 
-    // Only accepted students (available for assigning)
-    const acceptedStudents = users;
-
-    // Filter students based on search
-    const filteredStudents = acceptedStudents.filter((s) => {
-        const fullName = `${s.firstname} ${s.middlename || ""} ${
-            s.lastname
-        }`.toLowerCase();
-        const company = (s.company_name || "").toLowerCase();
-        const section = (s.section || "").toLowerCase();
-        return (
-            fullName.includes(search.toLowerCase()) ||
-            company.includes(search.toLowerCase()) ||
-            section.includes(search.toLowerCase())
-        );
-    });
-
-    // Toggle student selection
     const toggleStudent = (id) => {
-        const strId = id.toString();
-        if (data.student_ids.includes(strId)) {
+        if (data.student_ids.includes(id.toString())) {
             setData(
                 "student_ids",
-                data.student_ids.filter((v) => v !== strId)
+                data.student_ids.filter((s) => s !== id.toString())
             );
         } else {
-            setData("student_ids", [...data.student_ids, strId]);
+            setData("student_ids", [...data.student_ids, id.toString()]);
         }
     };
 
@@ -92,6 +73,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
             .finally(() => setLoading(false));
     };
 
+    // Assign Students
     const handleAssignStudents = (e) => {
         e.preventDefault();
         post(`/groups/${group.id}/assign-students`, {
@@ -100,6 +82,23 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
         });
     };
 
+    // Search students from backend
+    useEffect(() => {
+        if (search.trim() === "") {
+            setSearchResults([]);
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            fetch(`/groups/${group.id}/students/search?q=${search}`)
+                .then((res) => res.json())
+                .then((students) => setSearchResults(students));
+        }, 300); // debounce
+
+        return () => clearTimeout(timeout);
+    }, [search, group.id]);
+
+    // Upload Documents
     const handleUpload = (e) => {
         e.preventDefault();
         setUploadError("");
@@ -187,7 +186,6 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                                     : ""}
                                                 {s.lastname}
                                             </span>
-
                                             {s.company_name && (
                                                 <p className="text-sm text-gray-500">
                                                     Accepted at:{" "}
@@ -287,7 +285,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
 
                 {/* Upload Modal */}
                 {showUpload && (
-                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                         <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
                             <h3 className="text-lg font-bold mb-4">
                                 Upload Document for {group.name}
@@ -327,92 +325,90 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
 
                 {/* Assign Students Modal */}
                 {showAssign && (
-                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg">
-                            <h3 className="text-xl font-semibold mb-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+                            <h3 className="text-lg font-bold mb-4">
                                 Assign Students to {group.name}
                             </h3>
-
                             <input
                                 type="text"
-                                placeholder="Search students..."
                                 className="w-full p-2 border rounded-lg mb-4 focus:ring focus:ring-blue-200"
-                                onChange={(e) =>
-                                    setSearch(e.target.value.toLowerCase())
-                                }
+                                placeholder="Search students..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
                             />
-
-                            <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
-                                {filteredStudents.length === 0 && (
-                                    <p className="text-gray-500 text-sm text-center py-4">
-                                        No matching students
+                            <form onSubmit={handleAssignStudents}>
+                                <div className="max-h-64 overflow-y-auto space-y-2 pr-1 mb-4">
+                                    {searchResults.length === 0 ? (
+                                        <p className="text-gray-500 text-sm text-center py-4">
+                                            No matching students
+                                        </p>
+                                    ) : (
+                                        searchResults.map((student) => {
+                                            const isSelected =
+                                                data.student_ids.includes(
+                                                    student.id.toString()
+                                                );
+                                            return (
+                                                <div
+                                                    key={student.id}
+                                                    onClick={() =>
+                                                        toggleStudent(
+                                                            student.id
+                                                        )
+                                                    }
+                                                    className={`p-3 border rounded-xl cursor-pointer transition ${
+                                                        isSelected
+                                                            ? "bg-blue-600 text-white"
+                                                            : "bg-gray-50 hover:bg-gray-100"
+                                                    }`}
+                                                >
+                                                    <div className="font-medium">
+                                                        {student.firstname}{" "}
+                                                        {student.middlename
+                                                            ? student.middlename +
+                                                              " "
+                                                            : ""}
+                                                        {student.lastname}
+                                                    </div>
+                                                    <div
+                                                        className={`text-sm ${
+                                                            isSelected
+                                                                ? "text-blue-100"
+                                                                : "text-gray-500"
+                                                        }`}
+                                                    >
+                                                        {student.company_name ||
+                                                            "No Company"}{" "}
+                                                        • {student.section}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                                {errors.student_ids && (
+                                    <p className="text-red-500 text-sm mb-2">
+                                        {errors.student_ids}
                                     </p>
                                 )}
-
-                                {filteredStudents.map((student) => {
-                                    const isSelected =
-                                        data.student_ids.includes(
-                                            student.id.toString()
-                                        );
-                                    return (
-                                        <div
-                                            key={student.id}
-                                            onClick={() =>
-                                                toggleStudent(student.id)
-                                            }
-                                            className={`p-3 border rounded-xl cursor-pointer transition 
-                                                ${
-                                                    isSelected
-                                                        ? "bg-blue-600 text-white"
-                                                        : "bg-gray-50 hover:bg-gray-100"
-                                                }
-                                            `}
-                                        >
-                                            <div className="font-medium">
-                                                {student.firstname}{" "}
-                                                {student.middlename
-                                                    ? student.middlename + " "
-                                                    : ""}
-                                                {student.lastname}
-                                            </div>
-                                            <div
-                                                className={`text-sm ${
-                                                    isSelected
-                                                        ? "text-blue-100"
-                                                        : "text-gray-500"
-                                                }`}
-                                            >
-                                                {student.company_name ||
-                                                    "No Company"}{" "}
-                                                • {student.section}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {errors.student_ids && (
-                                <p className="text-red-500 text-sm mt-2">
-                                    {errors.student_ids}
-                                </p>
-                            )}
-
-                            <div className="flex justify-end gap-2 mt-5">
-                                <button
-                                    type="button"
-                                    className="bg-gray-400 text-white px-4 py-2 rounded-lg"
-                                    onClick={() => setShowAssign(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg"
-                                    onClick={handleAssignStudents}
-                                >
-                                    Save
-                                </button>
-                            </div>
+                                <div className="flex justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        className="bg-gray-400 text-white px-4 py-2 rounded-lg"
+                                        onClick={() => setShowAssign(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="bg-green-600 text-white px-4 py-2 rounded-lg"
+                                        disabled={processing}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}

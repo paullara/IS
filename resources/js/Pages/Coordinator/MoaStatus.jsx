@@ -34,7 +34,7 @@ export default function MoaStatus({ students }) {
         "signed_by_the_university_president",
     ];
 
-    const courses = ["BSIT", "BSOS", "BSHM"];
+    const courses = ["BSIT", "BSOA", "BSHM"];
 
     // ✅ Filtered data including search
     const filteredData = data.filter((student) => {
