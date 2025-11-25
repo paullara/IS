@@ -94,71 +94,58 @@ export default function Groups({
 
     return (
         <Instructor title="Groups">
-            <div className="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-                <h1 className="text-2xl font-bold mb-4">Groups Management</h1>
-                <Link href={route("instructor.groups.create")}>
-                    Create new Group
-                </Link>
-                {/* Groups List */}
-                <h2 className="text-xl font-semibold mb-2">Groups List</h2>
-                <div>
-                    {groups.map((group) => (
-                        <Link
-                            key={group.id}
-                            href={route("interns.groups.show", group.id)}
-                            className="block border rounded p-3 mb-2 hover:bg-gray-50"
-                        >
-                            <div className="font-bold">{group.name}</div>
-                        </Link>
-                    ))}
+            <div className="max-w-5xl mx-auto p-6">
+                {/* Header Section */}
+                <div className="flex items-center justify-between mb-8">
+                    <h1 className="text-3xl font-bold text-gray-800">
+                        Groups Management
+                    </h1>
+
+                    <Link
+                        href={route("instructor.groups.create")}
+                        className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+                    >
+                        + Create Group
+                    </Link>
                 </div>
 
-                {/* Assign Students Modal */}
-                {assigningGroup && (
-                    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-                            <h3 className="text-lg font-bold mb-4">
-                                Assign Students to {assigningGroup.name}
-                            </h3>
-                            <form onSubmit={handleAssignStudents}>
-                                <select
-                                    className="border p-2 w-full mb-4"
-                                    multiple
-                                    value={assignStudentIds}
-                                    onChange={(e) =>
-                                        setAssignStudentIds(
-                                            Array.from(
-                                                e.target.selectedOptions,
-                                                (o) => o.value
-                                            )
-                                        )
-                                    }
+                {/* Groups List */}
+                <div className="bg-white shadow rounded-xl p-6">
+                    <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                        Your Groups
+                    </h2>
+
+                    {groups.length === 0 ? (
+                        <p className="text-gray-500">No groups created yet.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {groups.map((group) => (
+                                <Link
+                                    key={group.id}
+                                    href={route(
+                                        "interns.groups.show",
+                                        group.id
+                                    )}
+                                    className="border rounded-xl p-5 shadow-sm hover:shadow-md transition bg-white"
                                 >
-                                    {students.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        type="button"
-                                        className="bg-gray-400 text-white px-4 py-2 rounded"
-                                        onClick={closeAssignModal}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="bg-green-600 text-white px-4 py-2 rounded"
-                                    >
-                                        Save
-                                    </button>
-                                </div>
-                            </form>
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-gray-800">
+                                                {group.name}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                {group.students?.length || 0}{" "}
+                                                students
+                                            </p>
+                                        </div>
+
+                                        <div className="text-gray-400">➜</div>
+                                    </div>
+                                </Link>
+                            ))}
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </Instructor>
     );
