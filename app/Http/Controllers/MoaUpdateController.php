@@ -21,12 +21,12 @@ class MoaUpdateController extends Controller
     // Inertia view
     public function moaStatus()
     {
-        $students = User::where('role', 'student')
-            ->select('id', 'firstname', 'lastname', 'email', 'course', 'section', 'moa_status')
+        $company = User::where('role', 'employer')
+            ->select('id', 'company_name', 'company_address', 'moa_status')
             ->get();
 
         return Inertia::render('Coordinator/MoaStatus', [
-            'students' => $students,
+            'companies' => $company,
         ]);
     }
 

@@ -169,7 +169,7 @@ export default function Interns() {
                     <h2 className="text-xl font-bold mb-6">
                         {selectedInternship
                             ? `${selectedInternship.title} Interns`
-                            : "Select an Internship"}
+                            : "Select an Interns"}
                     </h2>
 
                     {selectedInternship && (
@@ -310,7 +310,9 @@ export default function Interns() {
                                                         )
                                                     }
                                                 >
-                                                    <option value="0">--</option>
+                                                    <option value="0">
+                                                        --
+                                                    </option>
                                                     {[1, 2, 3, 4, 5].map(
                                                         (num) => (
                                                             <option

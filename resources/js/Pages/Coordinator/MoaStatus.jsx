@@ -2,24 +2,23 @@ import React, { useState } from "react";
 import CoordinatorLayout from "@/Layouts/Coordinator";
 import axios from "axios";
 
-export default function MoaStatus({ students }) {
-    const [data, setData] = useState(students);
+export default function MoaStatus({ companies }) {
+    const [data, setData] = useState(companies);
     const [filters, setFilters] = useState({
-        course: "",
-        section: "",
         moa_status: "",
         search: "",
     });
 
+    // Update MOA status
     const handleStatusChange = (id, value) => {
         axios
             .put(`/coordinator/update-moa-status/${id}`, { moa_status: value })
             .then(() => {
                 setData((prev) =>
-                    prev.map((student) =>
-                        student.id === id
-                            ? { ...student, moa_status: value }
-                            : student
+                    prev.map((company) =>
+                        company.id === id
+                            ? { ...company, moa_status: value }
+                            : company
                     )
                 );
             });
@@ -34,78 +33,39 @@ export default function MoaStatus({ students }) {
         "signed_by_the_university_president",
     ];
 
-    const courses = ["BSIT", "BSOA", "BSHM"];
-
-    // ✅ Filtered data including search
-    const filteredData = data.filter((student) => {
+    // Filter companies by search & status
+    const filteredData = data.filter((company) => {
         const searchMatch =
             filters.search === "" ||
-            `${student.firstname} ${student.lastname}`
+            company.company_name
                 .toLowerCase()
-                .includes(filters.search.toLowerCase()) ||
-            student.email.toLowerCase().includes(filters.search.toLowerCase());
+                .includes(filters.search.toLowerCase());
 
         return (
             searchMatch &&
-            (filters.course === "" || student.course === filters.course) &&
-            (filters.section === "" || student.section === filters.section) &&
             (filters.moa_status === "" ||
-                student.moa_status === filters.moa_status)
+                company.moa_status === filters.moa_status)
         );
     });
 
-    // ✅ Extract unique sections dynamically
-    const sections = [...new Set(data.map((s) => s.section))].filter(Boolean);
-
     return (
         <CoordinatorLayout title="MOA Status">
-            <div className="max-w-6xl mx-auto bg-white p-6 rounded-2xl shadow">
+            <div className="max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow">
                 <h1 className="text-2xl font-bold mb-6">
-                    MOA Status Management
+                    Company MOA Status Management
                 </h1>
 
-                {/* 🔍 Filters */}
+                {/* Filters */}
                 <div className="flex flex-wrap gap-4 mb-6">
-                    {/* Search input */}
                     <input
                         type="text"
-                        placeholder="Search by name or email..."
+                        placeholder="Search by company name..."
                         value={filters.search}
                         onChange={(e) =>
                             setFilters({ ...filters, search: e.target.value })
                         }
                         className="border rounded-lg p-2 flex-1 min-w-[200px]"
                     />
-
-                    <select
-                        value={filters.course}
-                        onChange={(e) =>
-                            setFilters({ ...filters, course: e.target.value })
-                        }
-                        className="border rounded-lg p-2"
-                    >
-                        <option value="">All Courses</option>
-                        {courses.map((c) => (
-                            <option key={c} value={c}>
-                                {c}
-                            </option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={filters.section}
-                        onChange={(e) =>
-                            setFilters({ ...filters, section: e.target.value })
-                        }
-                        className="border rounded-lg p-2"
-                    >
-                        <option value="">All Sections</option>
-                        {sections.map((s) => (
-                            <option key={s} value={s}>
-                                {s}
-                            </option>
-                        ))}
-                    </select>
 
                     <select
                         value={filters.moa_status}
@@ -126,39 +86,33 @@ export default function MoaStatus({ students }) {
                     </select>
                 </div>
 
-                {/* 📋 Table */}
+                {/* Table */}
                 <table className="w-full border-collapse border">
                     <thead>
                         <tr className="bg-gray-100">
-                            <th className="border p-2 text-left">Name</th>
-                            <th className="border p-2 text-left">Email</th>
-                            <th className="border p-2 text-left">Course</th>
-                            <th className="border p-2 text-left">Section</th>
+                            <th className="border p-2 text-left">
+                                Company Name
+                            </th>
+                            <th className="border p-2 text-left">Address</th>
                             <th className="border p-2 text-left">MOA Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredData.length > 0 ? (
-                            filteredData.map((student) => (
-                                <tr key={student.id} className="border">
+                            filteredData.map((company) => (
+                                <tr key={company.id} className="border">
                                     <td className="border p-2">
-                                        {student.firstname} {student.lastname}
+                                        {company.company_name}
                                     </td>
                                     <td className="border p-2">
-                                        {student.email}
-                                    </td>
-                                    <td className="border p-2">
-                                        {student.course}
-                                    </td>
-                                    <td className="border p-2">
-                                        {student.section}
+                                        {company.company_address}
                                     </td>
                                     <td className="border p-2">
                                         <select
-                                            value={student.moa_status}
+                                            value={company.moa_status}
                                             onChange={(e) =>
                                                 handleStatusChange(
-                                                    student.id,
+                                                    company.id,
                                                     e.target.value
                                                 )
                                             }
@@ -169,10 +123,9 @@ export default function MoaStatus({ students }) {
                                                     key={status}
                                                     value={status}
                                                 >
-                                                    {status.replaceAll(
-                                                        "_",
-                                                        " "
-                                                    )}
+                                                    {status
+                                                        .replaceAll("_", " ")
+                                                        .toUpperCase()}
                                                 </option>
                                             ))}
                                         </select>
@@ -182,10 +135,10 @@ export default function MoaStatus({ students }) {
                         ) : (
                             <tr>
                                 <td
-                                    colSpan="5"
+                                    colSpan="3"
                                     className="text-center py-4 text-gray-500"
                                 >
-                                    No students found
+                                    No companies found
                                 </td>
                             </tr>
                         )}
