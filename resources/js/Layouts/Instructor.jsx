@@ -51,7 +51,7 @@ export default function Instructor({ header, children }) {
                         href={route("instructor.visitation")}
                         active={route().current("instructor.visitation")}
                     >
-                        <h1 className="text-lg font-medium">Visitation</h1>
+                        <h1 className="text-lg font-medium">Calendar</h1>
                     </NavLink>
                     <NavLink
                         href={route("instructor.notification")}

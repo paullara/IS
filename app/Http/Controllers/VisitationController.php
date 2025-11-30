@@ -21,27 +21,31 @@ class VisitationController extends Controller
         ]);
     }
 
-    public function store(Request $request) 
-    {
-        // dd($request->all());
-        $request->validate([
-            'company_id' => 'required|exists:users,id',
-            'visitation_date' => 'required|date',
-            'remarks' => 'nullable|string'
-        ]);
+   public function store(Request $request)
+{
+    $request->validate([
+        'company_ids' => 'required|array|min:1',
+        'company_ids.*' => 'exists:users,id',
+        'visitation_date' => 'required|date',
+        'remarks' => 'nullable|string'
+    ]);
 
-        $visitation = Visitation::create([
-            'company_id' => $request->company_id,
+    $created = [];
+
+    foreach ($request->company_ids as $companyId) {
+        $created[] = Visitation::create([
+            'company_id' => $companyId,
             'instructor_id' => Auth::id(),
             'visitation_date' => $request->visitation_date,
             'remarks' => $request->remarks
         ]);
-
-        return response()->json([
-            'message' => 'Visitation scheduled successfully!',
-            'visitation' => $visitation,
-        ]);
     }
+
+    return response()->json([
+        'message' => 'Visitation scheduled successfully!',
+        'visitations' => $created,
+    ]);
+}
 
     public function visitationRequest()
     {

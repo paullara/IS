@@ -11,7 +11,8 @@ const localizer = momentLocalizer(moment);
 export default function Visitation() {
     const [visitations, setVisitations] = useState([]);
     const [companies, setCompanies] = useState([]);
-    const [selectedCompany, setSelectedCompany] = useState("");
+    const [selectionMode, setSelectionMode] = useState("single"); // single or multi
+    const [selectedCompany, setSelectedCompany] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [remarks, setRemarks] = useState("");
 
@@ -53,19 +54,22 @@ export default function Visitation() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedCompany || !selectedDate) {
-            alert("Please select company and date.");
+        if (selectedCompany.length === 0 || !selectedDate) {
+            alert("Please choose at least 1 company and a date.");
             return;
         }
+
         try {
             await axios.post("/visitation/store", {
-                company_id: selectedCompany,
+                company_ids: selectedCompany,
                 visitation_date: format(selectedDate, "yyyy-MM-dd"),
                 remarks,
             });
-            setSelectedCompany("");
+
+            setSelectedCompany([]);
             setRemarks("");
             setSelectedDate(null);
+
             fetchVisitations();
             alert("Visitation request submitted!");
         } catch (error) {
@@ -78,9 +82,7 @@ export default function Visitation() {
             <div className="p-6 grid grid-cols-3 gap-6">
                 {/* Calendar */}
                 <div className="col-span-2">
-                    <h1 className="text-2xl font-bold mb-4">
-                        Visitation Calendar
-                    </h1>
+                    <h1 className="text-2xl font-bold mb-4">Calendar</h1>
                     <Calendar
                         localizer={localizer}
                         events={visitations}
@@ -111,29 +113,121 @@ export default function Visitation() {
                 {/* Sidebar Form */}
                 <div className="border rounded p-4 shadow bg-white">
                     <h2 className="text-xl font-semibold mb-2">
-                        Schedule a Visitation
+                        Create Schedule
                     </h2>
+
                     <form onSubmit={handleSubmit} className="space-y-3">
+                        {/* Selection Mode */}
                         <select
-                            value={selectedCompany}
-                            onChange={(e) => setSelectedCompany(e.target.value)}
+                            value={selectionMode}
+                            onChange={(e) => {
+                                setSelectionMode(e.target.value);
+                                setSelectedCompany([]);
+                            }}
                             className="border p-2 rounded w-full"
-                            required
                         >
-                            <option value="">Select Company</option>
-                            {companies.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.company_name || c.name}
-                                </option>
-                            ))}
+                            <option value="single">Single Company</option>
+                            <option value="multi">Multiple Companies</option>
                         </select>
 
-                        {selectedDate && (
-                            <div className="flex items-center justify-between">
-                                <div className="px-3 py-2 bg-blue-100 text-blue-700 rounded-md text-sm font-medium">
-                                    📅 Selected Date:{" "}
-                                    {format(selectedDate, "PPP")}
+                        {/* Single Select */}
+                        {selectionMode === "single" && (
+                            <select
+                                value={
+                                    selectedCompany[0]
+                                        ? String(selectedCompany[0])
+                                        : ""
+                                }
+                                onChange={(e) =>
+                                    setSelectedCompany([Number(e.target.value)])
+                                }
+                                className="border p-2 rounded w-full"
+                            >
+                                <option value="">Select Company</option>
+                                {companies.map((c) => (
+                                    <option key={c.id} value={String(c.id)}>
+                                        {c.company_name || c.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+
+                        {/* Multi Select */}
+                        {selectionMode === "multi" && (
+                            <>
+                                {/* Show selected companies as tags */}
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {selectedCompany.map((id) => {
+                                        const company = companies.find(
+                                            (c) => c.id === id
+                                        );
+                                        return (
+                                            <span
+                                                key={id}
+                                                className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full flex items-center gap-1"
+                                            >
+                                                {company?.company_name ||
+                                                    company?.name}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedCompany(
+                                                            (prev) =>
+                                                                prev.filter(
+                                                                    (c) =>
+                                                                        c !== id
+                                                                )
+                                                        )
+                                                    }
+                                                    className="text-xs font-bold"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </span>
+                                        );
+                                    })}
                                 </div>
+
+                                {/* Dropdown for selecting more */}
+                                <select
+                                    value=""
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        const numVal = val ? Number(val) : null;
+                                        if (
+                                            numVal &&
+                                            !selectedCompany.includes(numVal)
+                                        ) {
+                                            setSelectedCompany((prev) => [
+                                                ...prev,
+                                                numVal,
+                                            ]);
+                                        }
+                                    }}
+                                    className="border p-2 rounded w-full"
+                                >
+                                    <option value="">Select Company</option>
+                                    {companies
+                                        .filter(
+                                            (c) =>
+                                                !selectedCompany.includes(c.id)
+                                        )
+                                        .map((c) => (
+                                            <option
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
+                                                {c.company_name || c.name}
+                                            </option>
+                                        ))}
+                                </select>
+                            </>
+                        )}
+
+                        {/* Selected Date */}
+                        {selectedDate && (
+                            <div className="px-3 py-2 bg-blue-100 text-blue-700 rounded-md text-sm font-medium flex justify-between">
+                                📅 Selected Date: {format(selectedDate, "PPP")}
                                 <button
                                     type="button"
                                     onClick={() => setSelectedDate(null)}
@@ -153,12 +247,7 @@ export default function Visitation() {
 
                         <button
                             type="submit"
-                            className={`px-4 py-2 rounded text-white w-full ${
-                                selectedDate
-                                    ? "bg-blue-500 hover:bg-blue-600"
-                                    : "bg-gray-400 cursor-not-allowed"
-                            }`}
-                            disabled={!selectedDate}
+                            className="px-4 py-2 rounded text-white w-full bg-blue-500"
                         >
                             Save
                         </button>
