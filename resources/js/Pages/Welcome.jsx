@@ -287,7 +287,7 @@ export default function Welcome({ auth }) {
                 {/* Footer */}
                 <footer className="text-center py-6 text-sm text-gray-500 bg-white">
                     © {new Date().getFullYear()} InternConnect. All rights
-                    reserved. Nigga
+                    reserved.
                 </footer>
             </div>
         </>
