@@ -1,225 +1,183 @@
-import ApplicationLogo from "@/Components/ApplicationLogo";
-import Dropdown from "@/Components/Dropdown";
-import NavLink from "@/Components/NavLink";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 
 export default function Coordinator({ header, children }) {
     const user = usePage().props.auth.user;
-
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="h-screen overflow-hidden bg-gray-100 flex">
-            <div
+        <div className="h-screen flex bg-gradient-to-br from-blue-50 to-indigo-50">
+            {/* SIDEBAR */}
+            <aside
                 className={`${
                     sidebarOpen ? "block" : "hidden"
-                } sm:block sm:flex flex-col w-64 bg-white text-black min-h-screen`}
+                } sm:flex w-64 flex-col bg-gradient-to-b from-blue-600 via-blue-700 to-indigo-800 text-white relative`}
             >
-                <div className="px-6 py-4">
-                    <Link
-                        href="/employer/dashboard"
-                        className="text-white text-xl font-bold"
-                    >
-                        <h1 className="text-2xl font-bold text-black">
-                            InternConnect
-                        </h1>
-                    </Link>
+                {/* Decorative Background (doesn't block clicks) */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-600/20" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full -translate-y-16 translate-x-16" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellow-400/10 rounded-full translate-y-12 -translate-x-12" />
                 </div>
-                <nav className="flex items-start p-8 flex-col space-y-1 flex-grow gap-5">
-                    <NavLink
-                        href={route("coordinator.dashboard")}
-                        active={route().current("coordinator.dashboard")}
-                    >
-                        <h1 className="text-lg font-medium">Dashboard</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("instructor.list")}
-                        active={route().current("instructors.list")}
-                    >
-                        <h1 className="text-lg font-medium">Instructor</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("student.master.list")}
-                        active={route().current("student.master.list")}
-                    >
-                        <h1 className="text-lg font-medium">Students</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.notification")}
-                        active={route().current("coordinator.notification")}
-                    >
-                        <h1 className="text-lg font-medium">Notification</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.incident")}
-                        active={route().current("coordinator.incident")}
-                    >
-                        <h1 className="text-lg font-medium">Incident Report</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("monitor.evaluation")}
-                        active={route().current("monitor.evaluation")}
-                    >
-                        <h1 className="text-lg font-medium">
-                            Monitor Evaluation
-                        </h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.groups.index")}
-                        active={route().current("coordinator.groups.index")}
-                    >
-                        <h1 className="text-lg font-medium">
-                            Instructor Group
-                        </h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.moaStatus")}
-                        active={route().current("coordinator.groups.index")}
-                    >
-                        <h1 className="text-lg font-medium">Moa Status</h1>
-                    </NavLink>
 
-                    {/* <NavLink
-                        href={route("coordinator.groups.create")}
-                        active={route().current("coordinator.groups.create")}
-                    >
-                        <h1 className="text-lg font-medium">Manage Groups</h1>
-                    </NavLink> */}
-                    <NavLink
-                        href={route("coordinator.internships")}
-                        active={route().current("coordinator.internships")}
-                    >
-                        <h1 className="text-lg font-medium">Internship</h1>
-                    </NavLink>
-                    {/* <NavLink
-                        href={route("coordinator.groups")}
-                        active={route().current("coordinator.groups")}
-                    >
-                        <h1 className="text-lg font-medium">Interns Groups</h1>
-                    </NavLink> */}
-                    <NavLink
-                        href={route("coordinator.verifications")}
-                        active={route().current("coordinator.verifications")}
-                    >
-                        <h1 className="text-lg font-medium">Verifications</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.companies")}
-                        active={route().current("coordinator.companies")}
-                    >
-                        <h1 className="text-lg font-medium">Companies</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.calendar")}
-                        active={route().current("coordinator.calendar")}
-                    >
-                        <h1 className="text-lg font-medium">Calendar</h1>
-                    </NavLink>
-                    <NavLink
-                        href={route("coordinator.visitation")}
-                        active={route().current("coordinator.visitation")}
-                    >
-                        <h1 className="text-lg font-medium">Visitation</h1>
-                    </NavLink>
-                </nav>
-
-                <div className="p-4 border-t bg-white sticky bottom-0 z-10">
-                    <NavLink
-                        href={route("profile.edit")}
-                        active={route().current("profile.edit")}
-                        className="w-full px-3 py-2 rounded-md text-sm font-medium text-gray-500"
-                    >
-                        <h1 className="text-lg font-medium">Profile</h1>
-                    </NavLink>
-                    <Link
-                        href={route("logout")}
-                        method="post"
-                        as="button"
-                        className="w-full px-3 py-2 text-left rounded-md text-sm font-medium text-red-500 hover:text-red-800"
-                    >
-                        <h1 className="text-lg font-medium">Log out</h1>
-                    </Link>
-                </div>
-            </div>
-            <div className="flex-1 flex flex-col">
-                <nav className="border-b border-gray-100 bg-white">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="flex h-16 justify-between">
-                            <div className="flex items-center">
-                                {route().current("coordinator.dashboard") && (
-                                    <h1 className="text-xl font-semibold">
-                                        Dashboard
-                                    </h1>
-                                )}
-                                {route().current("interns") && (
-                                    <h1 className="text-xl font-semibold">
-                                        Interns
-                                    </h1>
-                                )}
+                {/* CONTENT */}
+                <div className="relative z-10 flex flex-col h-full">
+                    {/* LOGO */}
+                    <div className="px-6 py-6 border-b border-white/10">
+                        <Link
+                            href={route("coordinator.dashboard")}
+                            className="flex items-center gap-3"
+                        >
+                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                🏢
                             </div>
-
-                            <div className="flex items-center">
-                                <button
-                                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                                    className="sm:hidden inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-500 focus:outline-none"
-                                >
-                                    <svg
-                                        className="h-6 w-6"
-                                        stroke="currentColor"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            className={
-                                                !sidebarOpen
-                                                    ? "inline-flex"
-                                                    : "hidden"
-                                            }
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M4 6h16M4 12h16M4 18h16"
-                                        />
-                                        <path
-                                            className={
-                                                sidebarOpen
-                                                    ? "inline-flex"
-                                                    : "hidden"
-                                            }
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </button>
-                                <div className="flex sm:hidden ml-4">
-                                    <Link href="/">
-                                        <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                    </Link>
-                                </div>
-                            </div>
-
-                            <div className="hidden sm:flex sm:items-center">
-                                <div className="relative ms-3">
-                                    {user.firstname}
-                                </div>
-                            </div>
-                        </div>
+                            <h1 className="text-xl font-bold">
+                                InternConnectsss
+                            </h1>
+                        </Link>
                     </div>
-                </nav>
-                <main className="flex-1 overflow-y-auto bg-gray-50">
+
+                    {/* NAV */}
+                    <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                        <NavLink
+                            href={route("coordinator.dashboard")}
+                            active={route().current("coordinator.dashboard")}
+                        >
+                            📊 Dashboard
+                        </NavLink>
+                        <NavLink
+                            href={route("instructor.list")}
+                            active={route().current("instructor.list")}
+                        >
+                            👩‍🏫 Instructors
+                        </NavLink>
+                        <NavLink
+                            href={route("student.master.list")}
+                            active={route().current("student.master.list")}
+                        >
+                            👨‍🎓 Students
+                        </NavLink>
+                        <NavLink
+                            href={route("monitor.evaluation")}
+                            active={route().current("monitor.evaluation")}
+                        >
+                            📈 Monitor Evaluation
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.moaStatus")}
+                            active={route().current("coordinator.moaStatus")}
+                        >
+                            📄 Moa Status
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.internships")}
+                            active={route().current("coordinator.internships")}
+                        >
+                            💼 Internship
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.incident")}
+                            active={route().current("coordinator.incident")}
+                        >
+                            ⚠️ Incident Reports
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.groups.index")}
+                            active={route().current("coordinator.groups.index")}
+                        >
+                            👥 Instructor Groups
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.verifications")}
+                            active={route().current(
+                                "coordinator.verifications"
+                            )}
+                        >
+                            ✅ Verifications
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.companies")}
+                            active={route().current("coordinator.companies")}
+                        >
+                            🏭 Companies
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.calendar")}
+                            active={route().current("coordinator.calendar")}
+                        >
+                            📅 Calendar
+                        </NavLink>
+                        <NavLink
+                            href={route("coordinator.visitation")}
+                            active={route().current("coordinator.visitation")}
+                        >
+                            👀 Visitation
+                        </NavLink>
+                    </nav>
+
+                    {/* USER */}
+                    <div className="px-4 py-4 border-t border-white/10">
+                        <p className="text-sm font-medium">{user.firstname}</p>
+                        <Link
+                            href={route("logout")}
+                            method="post"
+                            as="button"
+                            className="mt-3 w-full px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30"
+                        >
+                            🚪 Logout
+                        </Link>
+                    </div>
+                </div>
+            </aside>
+
+            {/* MAIN */}
+            <div className="flex-1 flex flex-col relative">
+                {/* TOP BAR */}
+                <header className="h-16 bg-white/80 backdrop-blur border-b flex items-center justify-between px-6 relative z-50">
+                    <button
+                        className="sm:hidden text-xl"
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                    >
+                        ☰
+                    </button>
+
+                    <h1 className="font-semibold text-gray-800">
+                        Coordinator Panel
+                    </h1>
+
+                    {/* NOTIFICATION */}
+                    <Link
+                        href={route("coordinator.notification")}
+                        className="relative p-2 rounded-xl text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition"
+                    >
+                        🔔
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></span>
+                    </Link>
+                </header>
+
+                {/* CONTENT */}
+                <main className="flex-1 overflow-y-auto relative z-10">
                     {header && (
-                        <header className="bg-white shadow">
-                            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                                {header}
-                            </div>
-                        </header>
+                        <div className="bg-white border-b p-6">{header}</div>
                     )}
                     {children}
                 </main>
             </div>
         </div>
+    );
+}
+
+function NavLink({ href, active, children }) {
+    return (
+        <Link
+            href={href}
+            className={`block px-4 py-3 rounded-xl transition ${
+                active
+                    ? "bg-white/20 text-white"
+                    : "text-white/80 hover:bg-white/10"
+            }`}
+        >
+            {children}
+        </Link>
     );
 }

@@ -6,6 +6,8 @@ export default function EditJobForm({ internship }) {
         title: internship.title,
         description: internship.description,
         requirements: internship.requirements,
+        responsibilities: internship.responsibilities,
+        max_intern: internship.max_intern,
         start_date: internship.start_date,
         end_date: internship.end_date,
     });
@@ -56,6 +58,26 @@ export default function EditJobForm({ internship }) {
                         {errors.description && (
                             <p className="text-red-500 text-xs mt-1">
                                 {errors.description}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-sm font-semibold mb-1 text-gray-700">
+                            Responsibilities
+                        </label>
+                        <textarea
+                            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            value={data.responsibilities}
+                            onChange={(e) =>
+                                setData("responsibilities", e.target.value)
+                            }
+                            placeholder="Job Responsibilities"
+                            rows="3"
+                        />
+                        {errors.responsibilities && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.responsibilities}
                             </p>
                         )}
                     </div>

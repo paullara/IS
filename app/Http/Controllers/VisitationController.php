@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Visitation;
 use App\Notifications\VisitationStatusNotification;
-use Illuminate\Support\Facades\Auth;
+use App\Notifications\VisitationEmployer;
 
 class VisitationController extends Controller
 {
@@ -39,6 +39,18 @@ class VisitationController extends Controller
             'visitation_date' => $request->visitation_date,
             'remarks' => $request->remarks
         ]);
+
+        // Notify the employer
+        $employer = User::find($companyId);
+        if ($employer) {
+            $employer->notify(new VisitationEmployer($request->visitation_date, $employer->company_name));
+
+            // Also notify coordinators
+            $coordinators = User::where('role', 'coordinator')->get();
+            foreach ($coordinators as $coordinator) {
+                $coordinator->notify(new VisitationEmployer($request->visitation_date, $employer->company_name));
+            }
+        }
     }
 
     return response()->json([

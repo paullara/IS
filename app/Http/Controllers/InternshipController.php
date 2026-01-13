@@ -39,7 +39,9 @@ class InternshipController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required',
-            'requirements' => 'required',
+            'requirements' => 'required|array|min:1',
+            'responsibilities' => 'required|array|min:1',
+            'max_intern' => 'required',
             'start_date'  => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
@@ -48,11 +50,14 @@ class InternshipController extends Controller
             'employer_id' => auth()->id(),
             'title' => $request->title,
             'description' => $request->description,
-            'requirements' => $request->requirements,
+            'requirements' => json_encode($request->requirements),
+            'responsibilities' => json_encode($request->responsibilities),
+            'max_intern' => $request->max_intern,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'status' => 'open'
         ]);
+
 
         return redirect()->route('internships.index')->with('success', 'Interships posted successfully.');
     }
@@ -70,6 +75,8 @@ class InternshipController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'requirements' => 'required|string',
+            'responsibiliities' => 'required|string',
+            'max_intern' => 'required|integer',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
         ]);
@@ -78,6 +85,8 @@ class InternshipController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'requirements' => $request->requirements,
+            'responsibilities' => $request->responsibilities,
+            'max_intern' => $request->max_intern,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
         ]);

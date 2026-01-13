@@ -42,7 +42,7 @@ export default function CreateGroup() {
                             Create
                         </button>
                         <Link
-                            href={route("groups.index")}
+                            href={route("coordinator.groups.index")}
                             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
                         >
                             Cancel

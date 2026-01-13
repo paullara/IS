@@ -22,7 +22,7 @@ export default function Applicants() {
                     <table className="w-full text-sm text-left text-gray-700">
                         <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
                             <tr>
-                                <th className="p-4">Student Name</th>
+                                <th className="p-4">Email</th>
                                 <th className="p-4">Internship</th>
                                 <th className="p-4">Status</th>
                                 <th className="p-4">Actions</th>
@@ -36,7 +36,7 @@ export default function Applicants() {
                                     className="hover:bg-gray-50 transition"
                                 >
                                     <td className="p-4">
-                                        {app.student?.firstname ?? "N/A"}
+                                        {app.student?.email ?? "N/A"}
                                     </td>
                                     <td className="p-4">
                                         {app.internship?.title ?? "N/A"}

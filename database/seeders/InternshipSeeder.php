@@ -9,7 +9,7 @@ class InternshipSeeder extends Seeder
 {
     public function run(): void
     {
-        $employerId = 16;
+        $employerId = 6;
 
         $internships = [
             [

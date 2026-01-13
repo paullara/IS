@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('employer_id')->constrained('users')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
-            $table->text('requirements');
+            $table->json('requirements');;
+            $table->json('responsibilities');
             $table->date('start_date');
             $table->date('end_date');
             $table->enum('status', ['open', 'closed'])->default('open');

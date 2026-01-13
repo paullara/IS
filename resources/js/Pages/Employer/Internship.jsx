@@ -82,6 +82,12 @@ export default function Index({}) {
                                                 internship.status.slice(1)}
                                         </span>
                                     </div>
+                                    <div className="text-sm text-gray-500 mt-2 space-x-2 flex flex-row">
+                                        <h2>
+                                            Maximun Intern:{" "}
+                                            <span>{internship.max_intern}</span>
+                                        </h2>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center space-x-2">

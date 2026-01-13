@@ -1,79 +1,88 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import EmployerLayout from "@/Layouts/EmployerLayout";
 import axios from "axios";
 
 export default function IncidentReport() {
     const [internships, setInternships] = useState([]);
+    const [selectedInternship, setSelectedInternship] = useState(null);
+
     const [data, setData] = useState({
         internship_id: "",
+        student_id: "",
         severity: "Minor",
         description: "",
     });
+
     const [loading, setLoading] = useState(false);
 
+    // ================= FETCH INTERNSHIPS =================
+    useEffect(() => {
+        axios
+            .get("/incident-reports/employer-targets")
+            .then((res) => setInternships(res.data.internships))
+            .catch(() => alert("Failed to load internships"));
+    }, []);
+
+    // ================= SUBMIT =================
     const submit = async (e) => {
         e.preventDefault();
-        if (!data.internship_id) {
-            alert("Please select an internship before submitting.");
+
+        if (!data.internship_id || !data.student_id) {
+            alert("Please select a student.");
             return;
         }
+
         try {
             setLoading(true);
-            await axios.post("/incident-reports", data);
-            alert("Incident report submitted successfully!");
-            setData({ internship_id: "", severity: "Minor", description: "" });
-        } catch (error) {
-            console.error("Error posting incident report", error);
+
+            // Axios sends JSON
+            await axios.post("/incident-reports", data, {
+                headers: { "Content-Type": "application/json" },
+            });
+
+            alert("Incident report submitted!");
+            setData({
+                internship_id: "",
+                student_id: "",
+                severity: "Minor",
+                description: "",
+            });
+            setSelectedInternship(null);
+        } catch (err) {
+            console.error(err);
             alert("Failed to submit incident report.");
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        const fetchInternships = async () => {
-            try {
-                const res = await axios.get("/internships/report");
-                setInternships(res.data.internship);
-            } catch (error) {
-                console.error("Error fetching internships");
-            }
-        };
-        fetchInternships();
-        const interval = setInterval(fetchInternships, 2000);
-        return () => clearInterval(interval);
-    }, []);
-
     return (
         <EmployerLayout>
             <div className="grid grid-cols-3 gap-6 p-6 bg-gray-50 rounded-lg shadow">
-                {/* Left Side - Description + Severity */}
+                {/* LEFT */}
                 <div className="col-span-2 bg-white p-6 rounded-lg shadow">
                     <h2 className="text-xl font-bold mb-4">Incident Report</h2>
 
                     <form onSubmit={submit} className="space-y-4">
-                        {/* Severity Buttons */}
+                        {/* Severity */}
                         <div>
-                            <label className="block font-medium mb-2">
-                                Severity
-                            </label>
-                            <div className="flex space-x-3">
+                            <label className="font-medium">Severity</label>
+                            <div className="flex gap-3 mt-2">
                                 {["Minor", "Moderate", "Major"].map((level) => (
                                     <button
-                                        key={level}
                                         type="button"
+                                        key={level}
                                         onClick={() =>
-                                            setData((prev) => ({
-                                                ...prev,
+                                            setData((p) => ({
+                                                ...p,
                                                 severity: level,
                                             }))
                                         }
-                                        className={`px-4 py-2 rounded-lg border transition 
-                                            ${
-                                                data.severity === level
-                                                    ? "bg-red-500 text-white border-red-500"
-                                                    : "bg-gray-100 border-gray-300 hover:bg-gray-200"
-                                            }`}
+                                        className={`px-4 py-2 rounded border ${
+                                            data.severity === level
+                                                ? "bg-red-500 text-white"
+                                                : "bg-gray-100"
+                                        }`}
                                     >
                                         {level}
                                     </button>
@@ -83,67 +92,86 @@ export default function IncidentReport() {
 
                         {/* Description */}
                         <div>
-                            <label className="block font-medium mb-2">
-                                Description
-                            </label>
+                            <label className="font-medium">Description</label>
                             <textarea
+                                rows="5"
+                                className="w-full border rounded p-3"
                                 value={data.description}
                                 onChange={(e) =>
-                                    setData((prev) => ({
-                                        ...prev,
+                                    setData((p) => ({
+                                        ...p,
                                         description: e.target.value,
                                     }))
                                 }
-                                rows="6"
-                                className="w-full border rounded-lg p-3 focus:ring focus:ring-red-300"
                             />
                         </div>
 
-                        {/* Submit */}
                         <button
-                            type="submit"
                             disabled={loading}
-                            className="w-full bg-red-600 text-white py-2 rounded-lg shadow hover:bg-red-700 disabled:opacity-50"
+                            className="w-full bg-red-600 text-white py-2 rounded"
                         >
-                            {loading
-                                ? "Submitting..."
-                                : "Submit Incident Report"}
+                            {loading ? "Submitting..." : "Submit Report"}
                         </button>
                     </form>
                 </div>
 
-                {/* Right Side - Internship List */}
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-lg font-bold mb-3">
-                        Select Internship
-                    </h3>
-                    <ul className="space-y-2 max-h-[400px] overflow-y-auto">
-                        {internships.length > 0 ? (
-                            internships.map((internship) => (
-                                <li
-                                    key={internship.id}
-                                    onClick={() =>
-                                        setData((prev) => ({
-                                            ...prev,
-                                            internship_id: internship.id,
-                                        }))
-                                    }
-                                    className={`p-3 rounded-lg border cursor-pointer transition
-                                        ${
-                                            data.internship_id === internship.id
-                                                ? "bg-blue-500 text-white border-blue-500"
-                                                : "bg-gray-50 hover:bg-gray-100 border-gray-300"
-                                        }`}
-                                >
-                                    {internship.title}
-                                </li>
-                            ))
-                        ) : (
-                            <li className="text-gray-500">
-                                No internships available
-                            </li>
-                        )}
-                    </ul>
+                {/* RIGHT */}
+                <div className="bg-white p-6 rounded-lg shadow space-y-4">
+                    <h3 className="font-bold">Internships</h3>
+
+                    {internships.map((internship) => (
+                        <div key={internship.id}>
+                            <button
+                                onClick={() => {
+                                    setSelectedInternship(internship);
+                                    setData((p) => ({
+                                        ...p,
+                                        internship_id: internship.id,
+                                        student_id: "",
+                                    }));
+                                }}
+                                className={`w-full text-left p-2 rounded ${
+                                    data.internship_id === internship.id
+                                        ? "bg-blue-500 text-white"
+                                        : "bg-gray-100"
+                                }`}
+                            >
+                                {internship.title}
+                            </button>
+
+                            {/* STUDENTS */}
+                            {selectedInternship?.id === internship.id && (
+                                <div className="mt-2 ml-2 space-y-1">
+                                    {internship.applications.length > 0 ? (
+                                        internship.applications.map((app) => (
+                                            <div
+                                                key={app.id}
+                                                onClick={() =>
+                                                    setData((p) => ({
+                                                        ...p,
+                                                        student_id:
+                                                            app.student.id,
+                                                    }))
+                                                }
+                                                className={`cursor-pointer p-2 rounded ${
+                                                    data.student_id ===
+                                                    app.student.id
+                                                        ? "bg-green-500 text-white"
+                                                        : "bg-gray-50"
+                                                }`}
+                                            >
+                                                {app.student.firstname}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-gray-500">
+                                            No accepted students
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
             </div>
         </EmployerLayout>

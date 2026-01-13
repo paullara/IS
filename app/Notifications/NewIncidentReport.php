@@ -41,6 +41,8 @@ class NewIncidentReport extends Notification
         return [
             'incident_id' => $this->incident->id,
             'internship' => $this->incident->internship->title,
+            'company_id' => $this->incident->employer_id, // Add this
+            'company' => $this->incident->internship->employer->company_name,
             'severity'   => $this->incident->severity,
             'description'=> $this->incident->description,
         ];

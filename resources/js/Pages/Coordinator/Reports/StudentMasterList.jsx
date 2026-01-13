@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CoordinatorLayout from "@/Layouts/Coordinator";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 import { router } from "@inertiajs/react";
 
 export default function StudentMasterList({ students, filters = {} }) {
@@ -33,6 +35,41 @@ export default function StudentMasterList({ students, filters = {} }) {
 
         const url = route("student.master.list", params);
         window.open(url, "_blank");
+    };
+
+    const downloadExcel = () => {
+        if (!students || students.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        const rows = students.map((student, index) => ({
+            "#": index + 1,
+            Name: student.name,
+            "School ID": student.student_id,
+            Course: student.course,
+            Section: student.section,
+            Company: student.company,
+            Internship: student.internship,
+            "Group - Section": student.group_section,
+            Status: student.status,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+
+        const excelBuffer = XLSX.write(workbook, {
+            bookType: "xlsx",
+            type: "array",
+        });
+
+        const blob = new Blob([excelBuffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+
+        saveAs(blob, "student_master_list.xlsx");
     };
 
     return (
@@ -84,10 +121,10 @@ export default function StudentMasterList({ students, filters = {} }) {
                         </button>
 
                         <button
-                            onClick={downloadPDF}
-                            className="bg-green-500 text-white px-4 py-2 rounded"
+                            onClick={downloadExcel}
+                            className="bg-green-600 text-white px-4 py-2 rounded"
                         >
-                            Download PDF
+                            Download Excel
                         </button>
                     </div>
                 </div>
@@ -104,7 +141,9 @@ export default function StudentMasterList({ students, filters = {} }) {
                                 <th className="border px-4 py-2">Section</th>
                                 <th className="border px-4 py-2">Company</th>
                                 <th className="border px-4 py-2">Internship</th>
-                                <th className="border px-4 py-2">Group - Section</th>
+                                <th className="border px-4 py-2">
+                                    Group - Section
+                                </th>
                                 <th className="border px-4 py-2">Status</th>
                             </tr>
                         </thead>
@@ -112,22 +151,41 @@ export default function StudentMasterList({ students, filters = {} }) {
                             {students.length > 0 ? (
                                 students.map((student, index) => (
                                     <tr key={student.id}>
-                                        <td className="border px-4 py-2">{index + 1}</td>
-                                        <td className="border px-4 py-2">{student.name}</td>
-                                        <td className="border px-4 py-2">{student.student_id}</td>
-                                        <td className="border px-4 py-2">{student.course}</td>
-                                        <td className="border px-4 py-2">{student.section}</td>
-                                        <td className="border px-4 py-2">{student.company}</td>
-                                        <td className="border px-4 py-2">{student.internship}</td>
-                                        <td className="border px-4 py-2">{student.group_section}</td>
+                                        <td className="border px-4 py-2">
+                                            {index + 1}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.name}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.student_id}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.course}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.section}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.company}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.internship}
+                                        </td>
+                                        <td className="border px-4 py-2">
+                                            {student.group_section}
+                                        </td>
                                         <td className="border px-4 py-2">
                                             <span
                                                 className={`px-2 py-1 rounded text-white text-xs ${
-                                                    student.status === "accepted"
+                                                    student.status ===
+                                                    "accepted"
                                                         ? "bg-green-500"
-                                                        : student.status === "rejected"
+                                                        : student.status ===
+                                                          "rejected"
                                                         ? "bg-red-500"
-                                                        : student.status === "pending"
+                                                        : student.status ===
+                                                          "pending"
                                                         ? "bg-yellow-500"
                                                         : "bg-gray-400"
                                                 }`}

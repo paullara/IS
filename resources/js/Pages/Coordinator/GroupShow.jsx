@@ -11,7 +11,9 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
     const [newMessage, setNewMessage] = useState("");
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
+    // Fetch documents
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
@@ -23,9 +25,8 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                 console.error("Failed to fetch documents:", err);
             }
         };
-
-        fetchDocuments(); // initial load
-        const interval = setInterval(fetchDocuments, 5000); // repeat every 5s
+        fetchDocuments();
+        const interval = setInterval(fetchDocuments, 5000);
         return () => clearInterval(interval);
     }, [group.id]);
 
@@ -41,12 +42,8 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
             const res = await axios.post(
                 `/coordinator/${group.id}/documents`,
                 formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                }
+                { headers: { "Content-Type": "multipart/form-data" } }
             );
-
-            // Instantly show new doc in UI
             setDocuments((prev) => [res.data, ...prev]);
             fileInput.value = "";
         } catch (err) {
@@ -54,7 +51,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         }
     };
 
-    // ✅ Poll for updates (every 5 seconds)
+    // Poll group updates
     useEffect(() => {
         const interval = setInterval(() => {
             axios
@@ -65,13 +62,12 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         return () => clearInterval(interval);
     }, [group.id]);
 
-    // ✅ Search instructors
+    // Search instructors
     useEffect(() => {
-        if (searchQuery.trim() === "") {
+        if (!searchQuery.trim()) {
             setSearchResults([]);
             return;
         }
-
         const timeout = setTimeout(() => {
             setLoading(true);
             axios
@@ -82,11 +78,9 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                 .catch((err) => console.error("Search error:", err))
                 .finally(() => setLoading(false));
         }, 300);
-
         return () => clearTimeout(timeout);
     }, [searchQuery]);
 
-    // ✅ Add instructor to the group
     const handleAddInstructor = async (instructorId) => {
         try {
             await axios.post(
@@ -98,8 +92,6 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                     ],
                 }
             );
-
-            // Update UI instantly
             const addedInstructor = searchResults.find(
                 (i) => i.id === instructorId
             );
@@ -107,8 +99,6 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                 ...prev,
                 instructors: [...prev.instructors, addedInstructor],
             }));
-
-            // Clear search
             setSearchQuery("");
             setSearchResults([]);
         } catch (error) {
@@ -134,33 +124,28 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         };
     }, [group.id]);
 
-    const handleSendMessage = (e) => {
+    const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
+
         setLoading(true);
-        fetch(`/instructor-groups/${group.id}/messages`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRF-TOKEN": document
-                    .querySelector('meta[name="csrf-token"]')
-                    .getAttribute("content"),
-            },
-            body: JSON.stringify({ content: newMessage }),
-        })
-            .then((res) => res.json())
-            .then((msg) => {
-                setMessages((prev) => [...prev, msg]);
-                setNewMessage("");
-            })
-            .finally(() => setLoading(false));
+        try {
+            const res = await axios.post(
+                `/instructor-groups/${group.id}/messages`,
+                { message: newMessage }
+            );
+            setMessages((prev) => [...prev, res.data]);
+            setNewMessage("");
+        } catch (err) {
+            console.error("Send message failed:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <Coordinator title={`Instructor Group: ${group.name}`}>
             <div className="min-h-screen bg-gray-50 py-10 px-6">
-                {/* Tabs */}
                 <div className="flex space-x-4 mb-8 border-b pb-2">
                     {["members", "documents", "chat"].map((tab) => (
                         <button
@@ -177,9 +162,9 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                     ))}
                 </div>
 
+                {/* Members Tab */}
                 {activeTab === "members" && (
-                    <div className="bg-white shadow-sm rounded-2xl p-6 border border-gray-100">
-                        {/* 🔍 Search bar */}
+                    <div className="bg-white shadow rounded-2xl p-6 border border-gray-100">
                         <input
                             type="text"
                             value={searchQuery}
@@ -188,7 +173,6 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                             className="w-full mb-3 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         />
 
-                        {/* Search results */}
                         {loading && (
                             <p className="text-sm text-gray-500 italic">
                                 Searching...
@@ -200,7 +184,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                                 {searchResults.map((user) => (
                                     <li
                                         key={user.id}
-                                        className="p-3 flex justify-between items-center hover:bg-gray-50"
+                                        className="p-3 flex justify-between items-center hover:bg-gray-50 transition"
                                     >
                                         <span>{user.name}</span>
                                         <button
@@ -216,17 +200,15 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                             </ul>
                         )}
 
-                        <h2 className="text-xl font-semibold mb-5">
+                        <h2 className="text-xl font-semibold mb-5 mt-6">
                             Assigned Instructors
                         </h2>
-
-                        {/* List of assigned instructors */}
                         {group.instructors.length > 0 ? (
-                            <ul className="divide-y divide-gray-200 mb-6">
+                            <ul className="divide-y divide-gray-200">
                                 {group.instructors.map((inst) => (
                                     <li
                                         key={inst.id}
-                                        className="py-3 flex items-center justify-between"
+                                        className="py-3 flex items-center justify-between hover:bg-gray-50 px-3 rounded transition"
                                     >
                                         <span className="text-gray-800 font-medium">
                                             {inst.firstname} {inst.lastname}
@@ -235,42 +217,45 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-gray-500 italic mb-6">
+                            <p className="text-gray-500 italic">
                                 No instructors assigned yet.
                             </p>
                         )}
                     </div>
                 )}
+
+                {/* Chat Tab */}
                 {activeTab === "chat" && (
-                    <div className="bg-gray-50 rounded-xl p-6 shadow-sm flex flex-col">
+                    <div className="bg-gray-50 rounded-xl p-6 shadow flex flex-col h-[500px]">
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">
                             Group Messages
                         </h2>
-                        <div className="border rounded-lg p-4 h-64 overflow-y-auto bg-white mb-3 flex-1">
+                        <div className="flex-1 overflow-y-auto p-4 border rounded-lg bg-white mb-3 flex flex-col-reverse">
                             {messages.length === 0 ? (
                                 <p className="text-gray-400 text-center">
                                     No messages yet.
                                 </p>
                             ) : (
-                                messages.map((msg) => (
-                                    <div
-                                        key={msg.id}
-                                        className="mb-3 border-b pb-2"
-                                    >
-                                        <span className="font-semibold text-gray-900">
-                                            {msg.user?.firstname || "Unknown"}
-                                        </span>
-                                        <span className="text-xs text-gray-500 ml-2">
-                                            {msg.created_at &&
-                                                new Date(
-                                                    msg.created_at
-                                                ).toLocaleString()}
-                                        </span>
-                                        <p className="ml-2 text-gray-700">
-                                            {msg.message}
-                                        </p>
-                                    </div>
-                                ))
+                                messages
+                                    .slice()
+                                    .reverse()
+                                    .map((msg) => (
+                                        <div key={msg.id} className="mb-3">
+                                            <span className="font-semibold text-gray-900">
+                                                {msg.user?.firstname ||
+                                                    "Unknown"}
+                                            </span>
+                                            <span className="text-xs text-gray-500 ml-2">
+                                                {msg.created_at &&
+                                                    new Date(
+                                                        msg.created_at
+                                                    ).toLocaleString()}
+                                            </span>
+                                            <p className="ml-2 text-gray-700">
+                                                {msg.message}
+                                            </p>
+                                        </div>
+                                    ))
                             )}
                         </div>
                         <form
@@ -294,6 +279,8 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                         </form>
                     </div>
                 )}
+
+                {/* Documents Tab */}
                 {activeTab === "documents" && (
                     <div className="bg-white shadow-sm rounded-2xl p-6 border border-gray-100">
                         <h2 className="text-xl font-semibold mb-5">
@@ -323,19 +310,30 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                                 {documents.map((doc) => (
                                     <li
                                         key={doc.id}
-                                        className="py-3 flex justify-between items-center"
+                                        className="py-3 flex justify-between items-center hover:bg-gray-50 transition px-3 rounded"
                                     >
                                         <span className="text-gray-800">
                                             {doc.name}
                                         </span>
-                                        <a
-                                            href={doc.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-indigo-600 hover:underline text-sm"
-                                        >
-                                            View / Download
-                                        </a>
+
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() =>
+                                                    setPreviewUrl(doc.url)
+                                                }
+                                                className="text-indigo-600 hover:underline text-sm"
+                                            >
+                                                Preview
+                                            </button>
+
+                                            <a
+                                                href={doc.url}
+                                                download
+                                                className="text-gray-500 hover:underline text-xs"
+                                            >
+                                                Download
+                                            </a>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
@@ -343,6 +341,28 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                             <p className="text-gray-500 italic">
                                 No documents uploaded yet.
                             </p>
+                        )}
+
+                        {/* Built-In Viewer */}
+                        {previewUrl && (
+                            <div className="mt-6">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h3 className="text-lg font-semibold text-gray-800">
+                                        Document Preview
+                                    </h3>
+                                    <button
+                                        onClick={() => setPreviewUrl(null)}
+                                        className="text-red-500 hover:text-red-700"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+
+                                <iframe
+                                    src={previewUrl}
+                                    className="w-full h-[600px] border rounded-lg"
+                                />
+                            </div>
                         )}
                     </div>
                 )}

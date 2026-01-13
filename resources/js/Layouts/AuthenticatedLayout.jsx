@@ -140,6 +140,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                             Verification
                                         </Dropdown.Link>
                                         <Dropdown.Link
+                                            href={route(
+                                                "student.incident.create"
+                                            )}
+                                        >
+                                            Incident Report
+                                        </Dropdown.Link>
+                                        <Dropdown.Link
                                             href={route("logout")}
                                             method="post"
                                             as="button"

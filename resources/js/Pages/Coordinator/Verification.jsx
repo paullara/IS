@@ -1,111 +1,177 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CoordinatorLayout from "@/Layouts/Coordinator";
 import axios from "axios";
 
 export default function Verification() {
     const [verifications, setVerifications] = useState([]);
-    const [selectedPermit, setSelectedPermit] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const [showModal, setShowModal] = useState(false);
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedDoc, setSelectedDoc] = useState(null);
+    const [selectedLabel, setSelectedLabel] = useState("");
+    const [selectedAppId, setSelectedAppId] = useState(null);
+
+    // ==============================
+    // Fetch pending applications
+    // ==============================
+    const fetchVerifications = async () => {
+        try {
+            const res = await axios.get("/pending/status");
+            setVerifications(res.data.applicants);
+        } catch (err) {
+            console.error("Failed to fetch verifications", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchVerifications = async () => {
-            try {
-                const response = await axios.get("/pending/status");
-                console.log("Response:", response);
-                setVerifications(response.data.applicants);
-            } catch (error) {
-                console.error("Failed to fetch the companies", error);
-            }
-        };
         fetchVerifications();
-        const interval = setInterval(fetchVerifications, 1000);
-        return () => clearInterval(interval);
     }, []);
 
-    const handleDecision = async (status) => {
+    // ==============================
+    // Viewer helpers
+    // ==============================
+    const openViewer = (path, label, appId) => {
+        setSelectedDoc(`/${path}`);
+        setSelectedLabel(label);
+        setSelectedAppId(appId);
+        setShowModal(true);
+    };
+
+    const closeViewer = () => {
+        setShowModal(false);
+        setSelectedDoc(null);
+        setSelectedLabel("");
+        setSelectedAppId(null);
+    };
+
+    const isPDF = (path) => path?.toLowerCase().endsWith(".pdf");
+
+    // ==============================
+    // Approve / Reject WHOLE APPLICATION
+    // ==============================
+    const handleDecision = async (status, appId = selectedAppId) => {
         try {
-            await axios.post(`/company-applications/${selectedId}/status`, {
+            await axios.post(`/company-applications/${appId}/status`, {
                 status,
             });
-            setShowModal(false);
-            setSelectedPermit(null);
-            setSelectedId(null);
+
+            closeViewer();
+            fetchVerifications();
         } catch (error) {
             console.error("Failed to update status", error);
         }
     };
 
-    const openModal = (permitPath, applicationId) => {
-        setSelectedPermit(`/${permitPath}`);
-        setSelectedId(applicationId);
-        setShowModal(true);
-    };
-
-    const closeModal = () => {
-        setSelectedPermit(null);
-        setShowModal(false);
-    };
-
+    // ==============================
+    // UI
+    // ==============================
     return (
         <CoordinatorLayout>
             <h2 className="text-xl font-semibold mb-4">
-                Pending Verifications
+                Pending Company Verifications
             </h2>
-            {verifications.length > 0 ? (
-                <ul className="space-y-2">
-                    {verifications.map((company) => (
-                        <li key={company.id}>
-                            <p>{company.user?.name ?? "No Company Name"}</p>
-                            <button
-                                onClick={() =>
-                                    openModal(
-                                        company.business_permit_path,
-                                        company.id
-                                    )
-                                }
-                                className="bg-blue-500 text-white px-4 py-3 rounded hover:bg-red-600"
-                            >
-                                View Permit
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p> No pending companies </p>
+
+            {loading && <p>Loading...</p>}
+
+            {!loading && verifications.length === 0 && (
+                <p className="text-gray-500">No pending applications.</p>
             )}
 
+            <div className="space-y-4">
+                {verifications.map((company) => (
+                    <div
+                        key={company.id}
+                        className="bg-white border rounded p-4 shadow-sm"
+                    >
+                        <p className="font-semibold mb-3">
+                            {company.user?.name ?? "No Company Name"}
+                        </p>
+
+                        <div className="space-y-3">
+                            {/* DOCUMENT LINKS */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {Object.entries(company.requirements).map(
+                                    ([label, path]) =>
+                                        path && (
+                                            <button
+                                                key={label}
+                                                onClick={() =>
+                                                    openViewer(
+                                                        path,
+                                                        label,
+                                                        company.id
+                                                    )
+                                                }
+                                                className="text-left text-blue-600 underline hover:text-blue-800"
+                                            >
+                                                View {label}
+                                            </button>
+                                        )
+                                )}
+                            </div>
+
+                            {/* WHOLE APPLICATION DECISION */}
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() =>
+                                        handleDecision("rejected", company.id)
+                                    }
+                                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                                >
+                                    Reject Application
+                                </button>
+
+                                <button
+                                    onClick={() =>
+                                        handleDecision("approved", company.id)
+                                    }
+                                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                                >
+                                    Approve Application
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* ================= MODAL ================= */}
             {showModal && (
-                <div>
-                    <div>
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white w-[85%] h-[85%] rounded shadow-lg relative p-4">
                         <button
-                            onClick={closeModal}
-                            className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                            onClick={closeViewer}
+                            className="absolute top-2 right-3 text-xl text-gray-600 hover:text-red-600"
                         >
                             ✖
                         </button>
-                        <h3 className="text-lg font-semibold mb-4">
-                            Bussiness Permit
+
+                        <h3 className="text-lg font-semibold mb-2">
+                            {selectedLabel}
                         </h3>
-                        <iframe
-                            src={selectedPermit}
-                            className="w-full h-[500px] border"
-                            title="Business Permit"
-                        />
-                        <div className="flex justify-end gap-4">
-                            <button
-                                onClick={() => handleDecision("rejected")}
-                                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                            >
-                                Reject
-                            </button>
-                            <button
-                                onClick={() => handleDecision("approved")}
-                                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                            >
-                                Approve
-                            </button>
+
+                        <div className="border h-[75%] mb-4 flex items-center justify-center bg-gray-100">
+                            {isPDF(selectedDoc) ? (
+                                <iframe
+                                    src={selectedDoc}
+                                    className="w-full h-full"
+                                    title="Document Viewer"
+                                />
+                            ) : (
+                                <img
+                                    src={selectedDoc}
+                                    alt="Document"
+                                    className="max-h-full max-w-full"
+                                />
+                            )}
                         </div>
+
+                        {/* NOTICE: Buttons removed */}
+                        <p className="text-sm text-gray-500 italic text-center">
+                            Close viewer to approve/reject entire application.
+                        </p>
                     </div>
                 </div>
             )}

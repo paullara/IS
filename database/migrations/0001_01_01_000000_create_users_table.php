@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('middlename')->nullable();
             $table->string('lastname');
             $table->string('picture')->nullable();
-            $table->string('school_id')->nullable();
+            $table->string('student_id')->nullable();
             $table->string('skills')->nullable();
             $table->text('bio')->nullable();
             $table->string('contact_number')->nullable();

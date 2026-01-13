@@ -50,7 +50,7 @@ export default function MoaStatus({ companies }) {
 
     return (
         <CoordinatorLayout title="MOA Status">
-            <div className="max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow">
+            <div className="max-w-5xl mx-auto bg-white p-6 rounded-2xl shadow mt-4">
                 <h1 className="text-2xl font-bold mb-6">
                     Company MOA Status Management
                 </h1>

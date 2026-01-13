@@ -1,344 +1,316 @@
-import React, { useState, useEffect } from "react";
-import { Head, useForm } from "@inertiajs/react";
+import React, { useEffect, useState } from "react";
+import { Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
 
 export default function Dashboard() {
-    const [selectedInternship, setSelectedInternship] = useState(null);
-    const [studentInfo, setStudentInfo] = useState([]);
-    const [existingApplication, setExistingApplication] = useState([]);
     const [internships, setInternships] = useState([]);
-    const [applyingId, setApplyingId] = useState(null); // track which internship is applying
+    const [selectedInternship, setSelectedInternship] = useState(null);
+    const [studentInfo, setStudentInfo] = useState(null);
+    const [existingApplications, setExistingApplications] = useState([]);
+    const [applyingId, setApplyingId] = useState(null);
     const [errorMessage, setErrorMessage] = useState("");
 
-    const { processing } = useForm();
-
-    // Fetch student info
+    /* ================= FETCH STUDENT ================= */
     useEffect(() => {
-        const fetchStudentInfo = async () => {
-            try {
-                const res = await axios.get("/student/details");
-                setStudentInfo(res.data);
-                console.log("Student Data", res.data);
-            } catch (error) {
-                console.error("Error fetching student info.", error);
-            }
-        };
-        fetchStudentInfo();
+        axios
+            .get("/student/details")
+            .then((res) => setStudentInfo(res.data))
+            .catch(() => console.error("Failed to fetch student info"));
     }, []);
 
-    // Fetch internships
+    /* ================= FETCH INTERNSHIPS ================= */
     useEffect(() => {
-        const fetchInternships = async () => {
-            try {
-                const res = await axios.get("/internships/offer");
-                setInternships(res.data.internships);
-                console.log("Internships:", res.data.internships);
-            } catch (error) {
-                console.error("Error fetching internships.");
-            }
-        };
-        fetchInternships();
+        axios
+            .get("/internships/offer")
+            .then((res) => setInternships(res.data.internships))
+            .catch(() => console.error("Failed to fetch internships"));
     }, []);
 
-    // Fetch existing applications
+    /* ================= FETCH EXISTING APPLICATIONS ================= */
     useEffect(() => {
-        const fetchExistingApplications = async () => {
-            try {
-                const res = await axios.get("/existing/application");
-                setExistingApplication(res.data.existingApplications || []);
-                console.log(
-                    "Existing Application",
-                    res.data.existingApplications
-                );
-            } catch (error) {
-                console.error("Error fetching existing applications.", error);
-            }
-        };
-        fetchExistingApplications();
+        axios
+            .get("/existing/application")
+            .then((res) =>
+                setExistingApplications(res.data.existingApplications || [])
+            )
+            .catch(() =>
+                console.error("Failed to fetch existing applications")
+            );
     }, []);
 
-    const applyForInternship = async (internshipId) => {
-        console.log("Applying for internship:", internshipId);
-        setApplyingId(internshipId);
+    /* ================= HELPERS ================= */
+    const hasApplied = (id) => existingApplications.includes(id);
+    const isFull = (internship) => internship.slots_left === 0;
+
+    const applyForInternship = async (internship) => {
+        if (isFull(internship)) return;
+
+        setApplyingId(internship.id);
         setErrorMessage("");
 
         try {
-            const response = await axios.post("/student/application", {
-                internship_id: internshipId,
+            await axios.post("/student/application", {
+                internship_id: internship.id,
             });
-
-            console.log("Application Response:", response.data);
-
-            // Update existing applications list so button becomes "Unavailable"
-            setExistingApplication((prev) => [...prev, internshipId]);
-
-            // Close modal after successful apply
+            setExistingApplications((prev) => [...prev, internship.id]);
             setSelectedInternship(null);
-        } catch (error) {
-            console.error(
-                "Error applying:",
-                error.response?.data || error.message
-            );
-            setErrorMessage(
-                error.response?.data?.message || "Failed to apply."
-            );
+        } catch (err) {
+            setErrorMessage(err.response?.data?.message || "Failed to apply.");
         } finally {
             setApplyingId(null);
         }
     };
 
-    const hasApplied = (internshipId) => {
-        return existingApplication.includes(internshipId);
-    };
-
     return (
         <AuthenticatedLayout>
             <Head title="Student Dashboard" />
-            <main className="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Sidebar */}
-                <aside className="bg-white border rounded-xl shadow-sm overflow-hidden">
-                    <div className="h-32 bg-gradient-to-r from-indigo-500 to-purple-500 relative">
-                        {studentInfo?.picture && (
-                            <img
-                                src={`/profiles/${studentInfo.picture}`}
-                                alt="Profile"
-                                className="w-24 h-24 object-cover rounded-full border-4 border-white absolute -bottom-12 left-6"
-                            />
-                        )}
-                    </div>
 
-                    <div className="pt-16 px-6 pb-6 space-y-4">
-                        {studentInfo ? (
-                            <>
-                                <div className="space-y-1">
-                                    <h2 className="text-lg font-semibold text-gray-900">
-                                        {studentInfo.firstname}{" "}
-                                        {studentInfo.lastname}
-                                    </h2>
-                                    <p className="text-sm text-gray-500">
-                                        School ID: {studentInfo.school_id}
-                                    </p>
-                                </div>
+            <div className="max-w-7xl mx-auto p-6 flex gap-6">
+                {/* ================= LEFT FIXED SIDEBAR ================= */}
+                <aside className="w-full md:w-64 flex-shrink-0 bg-white border rounded-xl shadow-sm p-6 h-fit">
+                    {studentInfo ? (
+                        <>
+                            <h2 className="text-lg font-semibold">
+                                {studentInfo.firstname} {studentInfo.lastname}
+                            </h2>
+                            <p className="text-sm text-gray-600">
+                                School ID: {studentInfo.school_id}
+                            </p>
 
-                                <div>
-                                    <h3 className="text-md font-semibold mb-2">
-                                        Skills
-                                    </h3>
-                                    <p className="text-gray-700 text-sm">
-                                        {studentInfo.skills ||
-                                            "No skills listed."}
-                                    </p>
-                                </div>
+                            <div className="mt-4">
+                                <h3 className="font-semibold">Skills</h3>
+                                <p className="text-sm text-gray-700">
+                                    {studentInfo.skills || "No skills listed."}
+                                </p>
+                            </div>
 
-                                <div>
-                                    <h3 className="text-md font-semibold mb-2">
-                                        Bio
-                                    </h3>
-                                    <p className="text-gray-700 text-sm">
-                                        {studentInfo.bio || "No bio provided."}
-                                    </p>
-                                </div>
-                            </>
-                        ) : (
-                            <p className="text-gray-500">No profile found.</p>
-                        )}
-                    </div>
+                            <div className="mt-4">
+                                <h3 className="font-semibold">Bio</h3>
+                                <p className="text-sm text-gray-700">
+                                    {studentInfo.bio || "No bio provided."}
+                                </p>
+                            </div>
+                        </>
+                    ) : (
+                        <p className="text-gray-500">Loading profile...</p>
+                    )}
                 </aside>
 
-                {/* Internships */}
-                <section className="md:col-span-2 space-y-6">
-                    {internships.length === 0 ? (
-                        <p className="text-gray-600 text-center">
-                            No internships available right now. Please check
-                            back later.
-                        </p>
-                    ) : (
-                        internships.map((internship) => (
-                            <section
-                                key={internship.id}
-                                className="bg-white border rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300 space-y-3"
-                            >
-                                <div className="flex items-center gap-4">
-                                    {internship.employer?.picture ? (
-                                        <img
-                                            src={`/${internship.employer.picture}`}
-                                            alt="Profile"
-                                            className="w-12 h-12 rounded-full object-cover border"
-                                        />
-                                    ) : (
-                                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-lg font-bold">
-                                            {internship.employer
-                                                .company_name?.[0] || "?"}
+                {/* ================= MAIN WRAPPER ================= */}
+                <div
+                    className={`flex-1 grid gap-6 ${
+                        selectedInternship
+                            ? "grid-cols-1 md:grid-cols-2"
+                            : "grid-cols-1"
+                    }`}
+                >
+                    {/* ================= MIDDLE CONTAINER: INTERNSHIP LIST ================= */}
+                    <section className="space-y-6">
+                        {internships.length === 0 ? (
+                            <p className="text-center text-gray-600">
+                                No internships available.
+                            </p>
+                        ) : (
+                            internships.map((internship) => (
+                                <div
+                                    key={internship.id}
+                                    className="bg-white border rounded-xl p-6 shadow-sm cursor-pointer"
+                                    onClick={() =>
+                                        setSelectedInternship(internship)
+                                    }
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {/* Employer Picture */}
+                                        {internship.employer?.picture ? (
+                                            <img
+                                                src={`/${internship.employer.picture}`}
+                                                alt={
+                                                    internship.employer
+                                                        .company_name
+                                                }
+                                                className="w-12 h-12 rounded-full object-cover border"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600">
+                                                No Img
+                                            </div>
+                                        )}
+
+                                        {/* Company Name */}
+                                        <div>
+                                            <h3 className="text-lg font-semibold">
+                                                {internship.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-500">
+                                                {
+                                                    internship.employer
+                                                        ?.company_name
+                                                }
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                {
+                                                    internship.employer
+                                                        ?.company_address
+                                                }
+                                            </p>
                                         </div>
-                                    )}
-                                    <div>
-                                        <h2 className="text-lg font-semibold text-gray-900">
-                                            {internship.title}
-                                        </h2>
-                                        <p className="text-sm text-gray-500">
-                                            {internship.employer.company_name ||
-                                                "Unknown Company"}
-                                        </p>
                                     </div>
-                                </div>
 
-                                <p className="text-sm text-gray-700">
-                                    {internship.description?.slice(0, 160) ||
-                                        "No description provided."}
-                                    {internship.description?.length > 160 &&
-                                        "..."}
-                                </p>
-
-                                <div className="flex justify-end gap-3">
-                                    <button
-                                        onClick={() =>
-                                            setSelectedInternship(internship)
-                                        }
-                                        className="text-sm text-indigo-600 font-medium hover:underline"
-                                    >
+                                    <p className="mt-2 text-sm">
+                                        Slots Left:{" "}
+                                        <span
+                                            className={`ml-2 font-semibold ${
+                                                internship.slots_left === 0
+                                                    ? "text-red-600"
+                                                    : "text-green-600"
+                                            }`}
+                                        >
+                                            {internship.slots_left}
+                                        </span>
+                                    </p>
+                                    <p className="mt-2 text-sm text-gray-700">
+                                        {internship.description?.slice(0, 120)}
+                                        {internship.description?.length > 120 &&
+                                            "..."}
+                                    </p>
+                                    <button className="mt-4 text-indigo-600 hover:underline">
                                         View Details
                                     </button>
                                 </div>
-                            </section>
-                        ))
-                    )}
-                </section>
-            </main>
+                            ))
+                        )}
+                    </section>
 
-            {/* Modal */}
-            {selectedInternship && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-                    <div className="bg-white max-w-4xl w-full rounded-lg shadow-xl overflow-y-auto max-h-[90vh] p-6 relative">
-                        <button
-                            className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-xl"
-                            onClick={() => setSelectedInternship(null)}
-                        >
-                            &times;
-                        </button>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h2 className="text-2xl font-bold mb-4 text-indigo-700">
+                    {/* ================= RIGHT CONTAINER: DETAILS PANEL ================= */}
+                    {selectedInternship && (
+                        <aside className="bg-white border rounded-xl shadow-sm p-6">
+                            <div className="flex w-full justify-between items-center">
+                                <h2 className="text-2xl font-bold text-indigo-700 mb-4">
                                     {selectedInternship.title}
                                 </h2>
-                                <h3 className="font-semibold mb-2 text-lg">
-                                    Description
-                                </h3>
-                                <p className="text-gray-700">
-                                    {selectedInternship.description ||
-                                        "No description available."}
-                                </p>
-
-                                {selectedInternship.requirements && (
-                                    <div className="mt-4">
-                                        <h3 className="font-semibold text-lg">
-                                            Requirements
-                                        </h3>
-                                        <ul className="list-disc list-inside text-gray-700">
-                                            {selectedInternship.requirements
-                                                .split(",")
-                                                .map((item, i) => (
-                                                    <li key={i}>
-                                                        {item.trim()}
-                                                    </li>
-                                                ))}
-                                        </ul>
-                                    </div>
-                                )}
+                                <button
+                                    className="self-end text-xl text-gray-500 hover:text-red-600 mb-4"
+                                    onClick={() => setSelectedInternship(null)}
+                                >
+                                    &times;
+                                </button>
                             </div>
 
-                            <div>
-                                <h3 className="text-xl font-bold mb-4">
+                            <p className="text-gray-700 mb-4">
+                                {selectedInternship.description}
+                            </p>
+
+                            {selectedInternship.responsibilities && (
+                                <div className="mb-4">
+                                    <h4 className="font-semibold mb-1">
+                                        Responsibilities
+                                    </h4>
+                                    <ul className="list-disc list-inside text-gray-700 space-y-1">
+                                        {JSON.parse(
+                                            selectedInternship.responsibilities
+                                        ).map((item, i) => (
+                                            <li key={i}>{item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {selectedInternship.requirements && (
+                                <div className="mb-4">
+                                    <h4 className="font-semibold mb-1">
+                                        Requirements
+                                    </h4>
+                                    <ul className="list-disc list-inside text-gray-700 space-y-1">
+                                        {JSON.parse(
+                                            selectedInternship.requirements
+                                        ).map((item, i) => (
+                                            <li key={i}>{item}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            <div className="mb-4">
+                                <h4 className="font-semibold text-gray-800 mb-2">
                                     Company Details
-                                </h3>
-                                <p className="text-gray-700">
+                                </h4>
+                                <p>
                                     <strong>Company:</strong>{" "}
-                                    {selectedInternship.employer.company_name ||
+                                    {selectedInternship.employer?.company_name}
+                                </p>
+                                <p>
+                                    <strong>Email:</strong>{" "}
+                                    {selectedInternship.employer?.email ||
                                         "N/A"}
                                 </p>
-                                <p className="text-gray-700">
-                                    <strong>Address:</strong>{" "}
-                                    {selectedInternship.employer
-                                        .company_address || "N/A"}
-                                </p>
-                                <p className="text-gray-700">
+                                <p>
                                     <strong>Phone:</strong>{" "}
                                     {selectedInternship.employer
-                                        .contact_number || "N/A"}
+                                        ?.contact_number || "N/A"}
                                 </p>
-                                <p className="text-gray-700">
-                                    <strong>Email:</strong>{" "}
-                                    {selectedInternship.employer.email || "N/A"}
+                                <p>
+                                    <strong>Address:</strong>{" "}
+                                    {selectedInternship.employer
+                                        ?.company_address || "N/A"}
                                 </p>
-                                <p className="text-gray-700 mt-2">
-                                    <strong>Website:</strong>{" "}
-                                    <a
-                                        href={
-                                            selectedInternship.employer.website
-                                        }
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-indigo-600 hover:underline"
-                                    >
-                                        {selectedInternship.employer.website ||
-                                            "N/A"}
-                                    </a>
-                                </p>
-                                <div className="mt-4">
-                                    <h4 className="font-semibold">
-                                        About the Company
-                                    </h4>
-                                    <p className="text-gray-700">
-                                        {selectedInternship.company_description ||
-                                            "No description available."}
+                                {selectedInternship.employer?.website && (
+                                    <p>
+                                        <strong>Website:</strong>{" "}
+                                        <a
+                                            href={
+                                                selectedInternship.employer
+                                                    .website
+                                            }
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-indigo-600 underline"
+                                        >
+                                            {
+                                                selectedInternship.employer
+                                                    .website
+                                            }
+                                        </a>
                                     </p>
-                                </div>
-
-                                {/* Apply button */}
-                                <button
-                                    onClick={() =>
-                                        applyForInternship(
-                                            selectedInternship.id
-                                        )
-                                    }
-                                    className={`px-4 py-2 rounded text-white ${
-                                        hasApplied(selectedInternship.id)
-                                            ? "bg-gray-400 cursor-not-allowed"
-                                            : applyingId ===
-                                              selectedInternship.id
-                                            ? "bg-blue-300"
-                                            : "bg-blue-500 hover:bg-blue-600"
-                                    }`}
-                                    disabled={
-                                        hasApplied(selectedInternship.id) ||
-                                        applyingId === selectedInternship.id
-                                    }
-                                >
-                                    {hasApplied(selectedInternship.id)
-                                        ? "Unavailable"
-                                        : applyingId === selectedInternship.id
-                                        ? "Applying..."
-                                        : "Apply"}
-                                </button>
-
-                                {/* Messages */}
-                                {hasApplied(selectedInternship.id) && (
-                                    <p className="mt-2 text-green-600 font-medium text-sm">
-                                        ✅ You applied successfully. Please wait
-                                        for the company to respond.
-                                    </p>
-                                )}
-
-                                {errorMessage && (
-                                    <div className="mt-4 text-red-500 font-semibold">
-                                        {errorMessage}
-                                    </div>
                                 )}
                             </div>
-                        </div>
-                    </div>
+
+                            <button
+                                onClick={() =>
+                                    applyForInternship(selectedInternship)
+                                }
+                                disabled={
+                                    hasApplied(selectedInternship.id) ||
+                                    isFull(selectedInternship) ||
+                                    applyingId === selectedInternship.id
+                                }
+                                className={`mt-auto w-full py-2 rounded text-white font-semibold ${
+                                    hasApplied(selectedInternship.id) ||
+                                    isFull(selectedInternship)
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : applyingId === selectedInternship.id
+                                        ? "bg-blue-300"
+                                        : "bg-blue-600 hover:bg-blue-700"
+                                }`}
+                            >
+                                {hasApplied(selectedInternship.id)
+                                    ? "Already Applied"
+                                    : isFull(selectedInternship)
+                                    ? "Slot Full"
+                                    : applyingId === selectedInternship.id
+                                    ? "Applying..."
+                                    : "Apply Now"}
+                            </button>
+
+                            {errorMessage && (
+                                <p className="mt-3 text-red-600 font-medium">
+                                    {errorMessage}
+                                </p>
+                            )}
+                        </aside>
+                    )}
                 </div>
-            )}
+            </div>
         </AuthenticatedLayout>
     );
 }

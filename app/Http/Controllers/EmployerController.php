@@ -163,28 +163,48 @@ class EmployerController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, $applicationId)
-    {
-        $request->validate([
-            'status' => 'required|in:accepted,rejected',
-        ]);
+   public function updateStatus(Request $request, $applicationId)
+{
+    $request->validate([
+        'status' => 'required|in:accepted,rejected',
+    ]);
 
-        $application = Application::findOrFail($applicationId);
+    $application = Application::findOrFail($applicationId);
 
-        $application->status = $request->status;
-        $application->save();
+    // Change the status
+    $application->status = $request->status;
+    $application->save();
 
-        if ($application->student) {
-                $application->student->notify(
-                    new ApplicationStatusNotification(
-                        $request->status,
-                        optional($application->internship)->title ?? 'the internship'
-                    )
-                );
+    // If accepted, check if internship is full
+    if ($request->status === 'accepted') {
+        $internship = $application->internship;
+
+        // Count accepted applications AFTER this one is saved
+        $acceptedCount = $internship->applications()
+                                   ->where('status', 'accepted')
+                                   ->count();
+
+        // If full, close the internship
+        if ($acceptedCount >= $internship->max_intern) {
+            $internship->status = 'closed';
+            $internship->save();
         }
-
-        return redirect()->back()->with('success', 'Status updated and student notified.');
     }
+
+    // Notify student
+    if ($application->student) {
+        $application->student->notify(
+            new ApplicationStatusNotification(
+                $request->status,
+                optional($application->internship)->title ?? 'the internship',
+                optional($application->internship)->employer->company_name ?? null
+            )
+        );
+    }
+
+    return redirect()->back()->with('success', 'Status updated and student notified.');
+}
+
 
 
 
@@ -285,5 +305,22 @@ public function rejectRequirement($id)
             'internship' => $internship,
         ]);
     }
+    
+
+    public function employerTargets()
+{
+    $employerId = auth()->id();
+
+    $internships = Internship::where('employer_id', $employerId)
+        ->with(['applications' => function ($q) {
+            $q->where('status', 'accepted')
+              ->with('student:id,firstname');
+        }])
+        ->get();
+
+    return response()->json([
+        'internships' => $internships
+    ]);
+}
     
 }

@@ -26,7 +26,7 @@ export default function ViewProfile() {
                         {profile.middle_name} {profile.lastname}
                     </p>
                     <p>
-                        <strong>School ID:</strong> {profile.school_id}
+                        <strong>School ID:</strong> {profile.student_id}
                     </p>
 
                     <p>

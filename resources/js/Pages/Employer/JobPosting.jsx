@@ -7,12 +7,34 @@ export default function JobPosting() {
     const { data, setData, post, processing, errors } = useForm({
         title: "",
         description: "",
-        requirements: "",
+        requirements: [""],
+        responsibilities: [""],
+        max_intern: "",
         start_date: "",
         end_date: "",
     });
     const [status, setStatus] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const addRequirement = () => {
+        setData("requirements", [...data.requirements, ""]);
+    };
+
+    const updateRequirement = (value, index) => {
+        const updated = [...data.requirements];
+        updated[index] = value;
+        setData("requirements", updated);
+    };
+
+    const addResponsibility = () => {
+        setData("responsibilities", [...data.responsibilities, ""]);
+    };
+
+    const updateResponsibility = (value, index) => {
+        const updated = [...data.responsibilities];
+        updated[index] = value;
+        setData("responsibilities", updated);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -90,18 +112,84 @@ export default function JobPosting() {
                         <label className="text-sm font-semibold mb-1 text-gray-700">
                             Requirements
                         </label>
-                        <textarea
-                            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            value={data.requirements}
-                            onChange={(e) =>
-                                setData("requirements", e.target.value)
-                            }
-                            placeholder="Job Requirements"
-                            rows="3"
-                        />
+
+                        {data.requirements.map((req, index) => (
+                            <input
+                                key={index}
+                                type="text"
+                                className="border rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                value={req}
+                                onChange={(e) =>
+                                    updateRequirement(e.target.value, index)
+                                }
+                                placeholder={`Requirement #${index + 1}`}
+                            />
+                        ))}
+
+                        <button
+                            type="button"
+                            onClick={addRequirement}
+                            className="text-blue-600 text-sm mt-1"
+                        >
+                            + Add Requirement
+                        </button>
+
                         {errors.requirements && (
                             <p className="text-red-500 text-xs mt-1">
                                 {errors.requirements}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-sm font-semibold mb-1 text-gray-700">
+                            Responsibilities
+                        </label>
+
+                        {data.responsibilities.map((res, index) => (
+                            <input
+                                key={index}
+                                type="text"
+                                className="border rounded-lg px-4 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                value={res}
+                                onChange={(e) =>
+                                    updateResponsibility(e.target.value, index)
+                                }
+                                placeholder={`Responsibility #${index + 1}`}
+                            />
+                        ))}
+
+                        <button
+                            type="button"
+                            onClick={addResponsibility}
+                            className="text-blue-600 text-sm mt-1"
+                        >
+                            + Add Responsibility
+                        </button>
+
+                        {errors.responsibilities && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.responsibilities}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col">
+                        <label className="text-sm font-semibold mb-1 text-gray-700">
+                            Maximun Intern
+                        </label>
+                        <input
+                            type="number"
+                            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            value={data.max_intern}
+                            onChange={(e) =>
+                                setData("max_intern", e.target.value)
+                            }
+                            placeholder="Maximum Intern"
+                        />
+                        {errors.max_intern && (
+                            <p className="text-red-500 text-xs mt-1">
+                                {errors.max_intern}
                             </p>
                         )}
                     </div>

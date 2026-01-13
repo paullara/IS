@@ -10,14 +10,9 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('course_id');
-            $table->unsignedBigInteger('uploaded_by'); // user id
-            $table->string('title');
+            $table->foreignId('uploaded_by')->constrained('users')->onDelete('cascade');
+            $table->string('original_name');
             $table->string('file_path');
-            $table->timestamps();
-
-            $table->foreign('course_id')->references('id')->on('courses')->onDelete('cascade');
-            $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

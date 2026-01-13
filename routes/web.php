@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\InstructorDocumentController;
 use App\Http\Controllers\InstructorGroupController;
 use App\Http\Controllers\MoaUpdateController;
@@ -116,11 +117,16 @@ Route::middleware(['auth', 'employer'])->group(function () {
     Route::get('/employer/application-status', [EmployerController::class, 'checkStatus']);
     Route::get('/employer/incident/report/', [EmployerController::class, 'incidentReport'])->name('incident.report.employer');
     Route::get('/internships/report', [EmployerController::class, 'internshipForIncidentReport']);
-    Route::post('/incident-reports', [IncidentReportController::class, 'store']);
+
+    Route::get('/incident-reports/employer-targets', [EmployerController::class, 'employerTargets']);
+
     Route::post('/evaluations', [EvaluationController::class, 'store']);
 });
 
+    Route::post('/incident-reports', [IncidentReportController::class, 'store']);
+
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/student/incident-reports', [IncidentReportController::class, 'studentIncidentReport'])->name('student.incident.create');
     Route::get('/dashboard', [StudentProfileController::class, 'dashboard'])->name('dashboard');
     Route::get('/student/notification', [StudentProfileController::class, 'notification'])->name('notification');
     Route::get('/student/profile', [StudentProfileController::class, 'edit'])->name('student.profile.edit');
@@ -141,6 +147,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/internships/offer', [StudentProfileController::class, 'getInternships']);
     Route::get('/existing/application', [ApplicationController::class, 'getExistingApplications']);
     Route::get('/instructor/visitation', [InstructorController::class, 'visitation'])->name('instructor.visitation');
+    // Route::get('/test/groups/{group}', [GroupController::class, 'testGroup'])->name('test.group');
 });
 
 // Student group list and group show routes
@@ -171,6 +178,7 @@ Route::delete('/coordinator/courses/{id}/remove-student/{studentId}', [Coordinat
 Route::get('/coordinator/courses/{course}/documents', [\App\Http\Controllers\DocumentController::class, 'index'])->name('coordinator.courses.documents');
 Route::post('/coordinator/courses/{course}/documents', [\App\Http\Controllers\DocumentController::class, 'store'])->name('coordinator.courses.documents.store');
 Route::delete('/coordinator/courses/{course}/documents/{id}', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('coordinator.courses.documents.destroy');
+Route::get('/documents/{filename}', [DocumentController::class, 'show'])->name('documents.show');
 // Announcement management for courses
 Route::get('/coordinator/courses/{course}/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])->name('coordinator.courses.announcements');
 Route::post('/coordinator/courses/{course}/announcements', [\App\Http\Controllers\AnnouncementController::class, 'store'])->name('coordinator.courses.announcements.store');
@@ -215,6 +223,7 @@ Route::get('student/courses', [StudentController::class, 'myCoursesAsStudent'])-
 Route::get('student/courses/{id}', [StudentController::class, 'show'])->name('student.courses.show');
 Route::get('/groups/{group}/documents', [GroupDocumentController::class, 'index'])->name('groups.documents.index');
 Route::post('/groups/{group}/documents', [GroupDocumentController::class, 'store'])->name('groups.documents.store');
+Route::post('/groups/tangina/{group}/documents', [DocumentController::class, 'store']);//tangina
 Route::get('/group-documents/{id}/download', [GroupDocumentController::class, 'download'])->name('group-documents.download');
 Route::get('/instructor/notifications', [InstructorController::class, 'notification'])->name('instructor.notification');
 // Coordinator group routes
@@ -236,8 +245,8 @@ Route::get('/coordinator/search-instructors', [InstructorGroupController::class,
     ->name('coordinator.instructors.search');
 Route::get('/coordinator/{instructorGroup}/documents', [InstructorDocumentController::class, 'index']);
 Route::post('/coordinator/{instructorGroup}/documents', [InstructorDocumentController::class, 'store']);
-
-
+Route::get('/instructor/groups/{group}/search-students', [InstructorGroupController::class, 'searchStudents'])->name('instructor.groups.search-students');
+Route::post('/instructor/{group}/documents', [DocumentController::class, 'store']);
 Route::get('/instructors/groups', [InstructorController::class, 'instructorGroup'])->name('instructor.instructorGroup');
 Route::get('/groups/{group}', [InstructorController::class, 'showInstructorGroup'])->name('instructor.groups.show');
 

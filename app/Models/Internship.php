@@ -11,10 +11,18 @@ class Internship extends Model
         'title',
         'description',
         'requirements',
+        'responsibilities',
         'start_date',
         'end_date',
+        'max_intern',
         'status'
     ];
+
+    protected $casts = [
+        'requirements' => 'array',
+        'responsibilities' => 'array',
+    ];
+
 
     public function employer()
     {

@@ -13,14 +13,16 @@ class ApplicationStatusNotification extends Notification
 
     protected $status;
     protected $internshipTitle;
+    protected $companyName;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($status, $internshipTitle)
+    public function __construct($status, $internshipTitle, $companyName = null)
     {
         $this->status = $status;
         $this->internshipTitle = $internshipTitle;
+        $this->companyName = $companyName;
     }
 
     /**
@@ -56,6 +58,10 @@ class ApplicationStatusNotification extends Notification
             'status' => $this->status,
             'title' => $this->internshipTitle,
         ];
+
+        if ($this->companyName) {
+            $data['company'] = $this->companyName;
+        }
 
         if ($this->status === 'accepted') {
             $data['url'] = route('student.requirements.index'); // link to requirement page

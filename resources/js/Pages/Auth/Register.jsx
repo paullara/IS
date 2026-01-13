@@ -14,6 +14,8 @@ export default function Register() {
         password: "",
         password_confirmation: "",
         role: "student",
+        student_id: "",
+        course: "",
     });
 
     const submit = (e) => {
@@ -36,14 +38,23 @@ export default function Register() {
                         id="role"
                         name="role"
                         value={data.role}
-                        onChange={(e) => setData("role", e.target.value)}
+                        onChange={(e) => {
+                            const newRole = e.target.value;
+                            setData("role", newRole);
+                            if (newRole === "employer") {
+                                setData("student_id", "");
+                                setData("course", "");
+                            } else if (newRole === "coordinator") {
+                                setData("student_id", "");
+                            }
+                        }}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                         required
                     >
                         <option value="">Select Role</option>
                         <option value="student">Student</option>
                         <option value="employer">Employer</option>
-                        <option value="instructor">Instructor</option>
+
                         <option value="coordinator">Coordinator</option>
                     </select>
 
@@ -100,6 +111,31 @@ export default function Register() {
                     <InputError message={errors.lastname} className="mt-2" />
                 </div>
 
+                {/* Student ID */}
+                {data.role === "student" && (
+                    <div>
+                        <InputLabel
+                            htmlFor="student_id_number"
+                            value="Student ID"
+                        />
+                        <TextInput
+                            id="student_id"
+                            name="student_id"
+                            value={data.student_id}
+                            className="mt-1 block w-full rounded-lg"
+                            onChange={(e) =>
+                                setData("student_id", e.target.value)
+                            }
+                            required
+                            placeholder="e.g., 20-SC-1001"
+                        />
+                        <InputError
+                            message={errors.student_id} // <-- will show server validation error
+                            className="mt-2"
+                        />
+                    </div>
+                )}
+
                 <div className="mt-4">
                     <InputLabel htmlFor="email" value="Email" />
 
@@ -117,21 +153,23 @@ export default function Register() {
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="course" value="Course" />
+                {data.role !== "employer" && (
+                    <div className="mt-4">
+                        <InputLabel htmlFor="course" value="Course" />
 
-                    <TextInput
-                        id="course"
-                        type="text"
-                        name="course"
-                        value={data.course}
-                        className="mt-1 block w-full"
-                        autoComplete="course"
-                        onChange={(e) => setData("course", e.target.value)}
-                    />
+                        <TextInput
+                            id="course"
+                            type="text"
+                            name="course"
+                            value={data.course}
+                            className="mt-1 block w-full"
+                            autoComplete="course"
+                            onChange={(e) => setData("course", e.target.value)}
+                        />
 
-                    <InputError message={errors.course} className="mt-2" />
-                </div>
+                        <InputError message={errors.course} className="mt-2" />
+                    </div>
+                )}
 
                 <div className="mt-4">
                     <InputLabel htmlFor="password" value="Password" />

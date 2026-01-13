@@ -8,5 +8,5 @@ class CoordinatorToInstructorMessage extends Model
 {
     protected $fillable = [
         ''
-    ]
+    ];
 }

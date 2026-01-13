@@ -13,14 +13,16 @@ class NewApplicantNotification extends Notification
 
     protected $studentName;
     protected $internshipTitle;
+    protected $companyName;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($studentName, $internshipTitle)
+    public function __construct($studentName, $internshipTitle, $companyName = null)
     {
         $this->studentName = $studentName;
         $this->internshipTitle = $internshipTitle;
+        $this->companyName = $companyName;
     }
 
     /**
@@ -51,8 +53,14 @@ class NewApplicantNotification extends Notification
      */
     public function toArray($notifiable)
     {
-        return [
+        $data = [
             'message' => "{$this->studentName} has applied for {$this->internshipTitle}.",
         ];
+
+        if ($this->companyName) {
+            $data['company'] = $this->companyName;
+        }
+
+        return $data;
     }
 }

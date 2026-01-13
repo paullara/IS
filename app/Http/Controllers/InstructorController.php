@@ -54,33 +54,43 @@ class InstructorController extends Controller
         ]);
     }
 
-   public function instructorGroup()
-{
-    $user = Auth::user();
+    public function instructorGroup()
+    {
+        $user = Auth::user();
 
-    $instructorGroups = $user->instructorGroups()->get();
-        
-    return Inertia::render('Instructor/InstructorGroup', [
-        'instructorGroups' => $instructorGroups,
-    ]);
-}
+        $instructorGroups = $user->instructorGroups()->get();
+            
+        return Inertia::render('Instructor/InstructorGroup', [
+            'instructorGroups' => $instructorGroups,
+        ]);
+    }
 
 
     public function showInstructorGroup(InstructorGroup $group)
-    {
-        $group->load(['coordinator', 'instructors', 'documents']);
+{
+    $group->load([
+        'coordinator:id,firstname,lastname,role',
+        'instructors:id,firstname,lastname,role',
+        'documents'
+    ]);
 
-        $documents = $group->documents->map(fn($doc) => [
-            'id' => $doc->id,
-            'name' => $doc->original_name,
-            'url' => asset('storage/' . $doc->file_path),
-        ]);
+    $documents = $group->documents->map(fn($doc) => [
+        'id'   => $doc->id,
+        'name' => $doc->original_name,
+        'url'  => asset('documents/' . basename($doc->file_path)), // Fixed
+    ]);
 
-        return Inertia::render('Instructor/InstructorGroupShow', [
-            'group' => $group,
-            'documents' => $documents,
-        ]);
-    }
+    return Inertia::render('Instructor/InstructorGroupShow', [
+        'group'  => [
+            'id'          => $group->id,
+            'name'        => $group->name,
+            'coordinator' => $group->coordinator,
+            'instructors' => $group->instructors,
+        ],
+        'documents' => $documents,
+    ]);
+}
+
 
     public function showMyGroup(Group $group)
     {

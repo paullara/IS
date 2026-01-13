@@ -61,20 +61,37 @@ class StudentProfileController extends Controller
         ]);
     }
 
-    public function getInternships()
-    {
-        $today = Carbon::today();
+   public function getInternships()
+{
+    $today = Carbon::today();
 
-        $internships = Internship::with('employer')
-            ->where('status', 'open')
-            ->whereDate('end_date', '>=', $today)
-            ->latest()
-            ->get();
-        
-        return response()->json([
-            'internships' => $internships
-        ]);
-    }
+    $internships = Internship::with('employer')
+        ->withCount([
+            'applications as current_interns' => function ($q) {
+                $q->where('status', 'accepted'); // adjust if needed
+            }
+        ])
+        ->where('status', 'open')
+        ->whereDate('end_date', '>=', $today)
+        ->latest()
+        ->get()
+        ->map(function ($internship) {
+
+            // IMPORTANT: use max_intern (singular)
+            $internship->slots_left = max(
+                0,
+                $internship->max_intern - $internship->current_interns
+            );
+
+            $internship->is_full = $internship->slots_left === 0;
+
+            return $internship;
+        });
+
+    return response()->json([
+        'internships' => $internships
+    ]);
+}
 
     public function edit()
     {
@@ -203,6 +220,12 @@ class StudentProfileController extends Controller
         $employers = User::where('role', 'employer')->get();
         foreach ($employers as $employer) {
             $employer->notify(new NewRequirementsSubmitted($user));
+        }
+
+        // Notify coordinators as well
+        $coordinators = User::where('role', 'coordinator')->get();
+        foreach ($coordinators as $coordinator) {
+            $coordinator->notify(new NewRequirementsSubmitted($user));
         }
 
         return redirect()->back()->with('success', 'Internship requirements submitted. Please wait for approval.');

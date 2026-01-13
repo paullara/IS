@@ -11,12 +11,16 @@ class VisitationEmployer extends Notification
 {
     use Queueable;
 
+    protected $visitationDate;
+    protected $companyName;
+
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct($visitationDate, $companyName)
     {
-        //
+        $this->visitationDate = $visitationDate;
+        $this->companyName = $companyName;
     }
 
     /**
@@ -48,7 +52,9 @@ class VisitationEmployer extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => "A visitation has been scheduled for your company on {$this->visitationDate}.",
+            'company' => $this->companyName,
+            'visitation_date' => $this->visitationDate,
         ];
     }
 }

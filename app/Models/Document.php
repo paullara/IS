@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Document extends Model
 {
     protected $fillable = [
-        'course_id',
+        'group_id',
         'uploaded_by',
-        'title',
+        'original_name',
         'file_path',
     ];
+
+    public $timestamps = false; 
 
     public function course()
     {

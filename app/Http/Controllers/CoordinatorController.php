@@ -130,23 +130,16 @@ class CoordinatorController extends Controller
 
    public function dashboard()
     {
-        // Get all courses managed by this coordinator
-        $courses = \App\Models\Course::where('coordinator_id', Auth::id())->get();
-        $courseIds = $courses->pluck('id');
-
         // Get instructors linked to those courses
-        $instructors = User::where('role', 'instructor')
-            ->whereHas('coursesAsInstructor', function ($q) use ($courseIds) {
-                $q->whereIn('course_id', $courseIds);
-            })
-            ->get();
+        $instructors = User::where('role', 'instructor')->get();
 
         // Get internships related to these courses
-        $internships = Internship::whereIn('course_id', $courseIds)->get();
+        $internships = Internship::all();
+
 
         // Get groups tied to instructors of these courses
         $instructorIds = $instructors->pluck('id');
-        $groups = Group::with(['instructor', 'students.studentProfile'])
+        $groups = Group::with(['instructor', 'students'])
             ->whereIn('instructor_id', $instructorIds)
             ->get();
 
@@ -172,7 +165,11 @@ class CoordinatorController extends Controller
     {
         // dd($request->all());
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'firstname' => 'required|string|max:255',
+            'middlename' => 'nullable|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'year_level' => 'required|integer|max:10',
+            'section' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'course' => 'nullable|string|max:255',
@@ -193,7 +190,7 @@ class CoordinatorController extends Controller
 
         User::create($data);
 
-        return redirect()->route('coordinator.instructors')->with('success', 'Instructor created successfully.');
+        return redirect()->route('instructor.list')->with('success', 'Instructor created successfully.');
     }
 
     public function showInstructor(string $id)
@@ -216,8 +213,12 @@ class CoordinatorController extends Controller
     {
         $instructor = User::where('role', 'instructor')->findOrFail($id);
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'firstname' => 'sometimes|string|max:255',
+            'middlename' => 'sometimes|string|max:255',
+            'lastname' => 'sometimes|string|max:255',
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $id,
+            'year_level' => 'sometimes|integer|max:10',
+            'section' => 'sometimes|string|max:255',
             'course' => 'nullable|string|max:255',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
@@ -236,7 +237,7 @@ class CoordinatorController extends Controller
         }
 
         $instructor->update($data);
-        return redirect()->route('coordinator.instructors')->with('success', 'Instructor updated successfully.');
+        return redirect()->route('instructor.list')->with('success', 'Instructor updated successfully.');
     }
 
     public function destroyInstructor(string $id)
@@ -375,7 +376,7 @@ public function assignStudentToInternship(Request $request)
     // Notify the user
     $user = User::find($request->student_id);
     if ($user) {
-        $user->notify(new ApplicationStatusNotification('accepted', $internship->title));
+        $user->notify(new ApplicationStatusNotification('accepted', $internship->title, $internship->employer->company_name));
     }
 
     return back()->with('success', 'Student assigned, status updated, and notification sent.');
@@ -538,9 +539,9 @@ public function assignStudentToInternship(Request $request)
         return [
             'id' => $student->id,
             'name' => $student->firstname . ' ' . ($student->middlename ? $student->middlename . ' ' : '') . $student->lastname,
-            'student_id' => $student->school_id,
-            'course' => $student->course ?? 'N/A', // 🔹 show course in data
-            'section' => $student->section ?? 'N/A', // 🔹 show section
+            'student_id' => $student->student_id,
+            'course' => $student->course ?? 'N/A',
+            'section' => $student->section ?? 'N/A',
             'company' => $company,
             'internship' => $internship,
             'status' => $application->status ?? 'No Application',
@@ -578,7 +579,7 @@ public function assignStudentToInternship(Request $request)
 
     public function getIncidentReport()
     {
-        $report = IncidentReport::with('internship', 'employer')->latest()->get();
+        $report = IncidentReport::with('internship', 'employer', 'student')->latest()->get();
 
         return response()->json([
             'report' => $report,

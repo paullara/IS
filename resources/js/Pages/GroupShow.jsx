@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Inertia } from "@inertiajs/inertia";
 
 export default function GroupShow({ group, users = [], auth, documents = [] }) {
-    // Messaging state
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [loading, setLoading] = useState(false);
 
-    // Fetch messages on mount and set up polling for real-time updates
+    // Fetch messages via polling
     useEffect(() => {
         let isMounted = true;
         const fetchMessages = () => {
@@ -19,7 +17,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                 });
         };
         fetchMessages();
-        const interval = setInterval(fetchMessages, 2000); // Poll every 2 seconds
+        const interval = setInterval(fetchMessages, 2000);
         return () => {
             isMounted = false;
             clearInterval(interval);
@@ -70,28 +68,27 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-8 flex-1 px-4 md:px-0 pb-8">
-                        {/* Documents Section */}
+                        {/* DOCUMENTS */}
                         <div className="flex-1 min-w-[250px]">
                             <h2 className="text-xl font-bold text-blue-700 mb-2">
                                 Group Documents
                             </h2>
+
                             {documents.length === 0 ? (
                                 <div className="text-gray-500 text-sm">
                                     No documents uploaded yet.
                                 </div>
                             ) : (
-                                <ul className="list-disc ml-6">
+                                <ul className="list-disc ml-6 space-y-1">
                                     {documents.map((doc) => (
                                         <li key={doc.id}>
                                             <a
-                                                href={`/group-documents/${doc.id}/download`}
+                                                href={doc.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-700 underline hover:text-blue-900"
                                             >
-                                                {doc.name ||
-                                                    doc.original_name ||
-                                                    "Document"}
+                                                {doc.name ?? "Document"}
                                             </a>
                                         </li>
                                     ))}
@@ -99,11 +96,12 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                             )}
                         </div>
 
-                        {/* Messaging Section */}
+                        {/* MESSAGES */}
                         <div className="flex-1 min-w-[250px] flex flex-col">
                             <h2 className="text-xl font-bold text-blue-700 mb-2">
                                 Group Messages
                             </h2>
+
                             <div className="border rounded-lg p-4 h-64 overflow-y-auto bg-gray-50 mb-2 flex-1">
                                 {messages.length === 0 && (
                                     <div className="text-gray-400 text-center">
@@ -127,6 +125,7 @@ export default function GroupShow({ group, users = [], auth, documents = [] }) {
                                     </div>
                                 ))}
                             </div>
+
                             <form
                                 onSubmit={handleSendMessage}
                                 className="flex gap-2 mt-auto"

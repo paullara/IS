@@ -28,6 +28,16 @@ class ApplicationController extends Controller
 
         $internship = Internship::find($request->internship_id);
 
+        // Check if internship is open and has available slots
+        if ($internship->status !== 'open') {
+            return back()->withErrors(['message' => 'This internship is no longer accepting applications.']);
+        }
+
+        $acceptedCount = $internship->applications()->where('status', 'accepted')->count();
+        if ($acceptedCount >= $internship->max_intern) {
+            return back()->withErrors(['message' => 'This internship has reached its maximum number of interns.']);
+        }
+
         $application = Application::create([
             'student_id' => $user->id,
             'internship_id' => $request->internship_id,
@@ -39,7 +49,14 @@ class ApplicationController extends Controller
         if ($employer) {
             $studentName = $user->firstname . ' ' . $user->lastname;
             $internshipTitle = $internship->title;
-            $employer->notify(new NewApplicantNotification($studentName, $internshipTitle));
+            $companyName = $employer->company_name;
+            $employer->notify(new NewApplicantNotification($studentName, $internshipTitle, $companyName));
+
+            // Notify coordinators as well
+            $coordinators = User::where('role', 'coordinator')->get();
+            foreach ($coordinators as $coordinator) {
+                $coordinator->notify(new NewApplicantNotification($studentName, $internshipTitle, $companyName));
+            }
         }
 
         return response()->json([

@@ -16,7 +16,7 @@ class InstructorDocument extends Model
     public function instructorGroup()
     {
         return $this->belongsTo(InstructorGroup::class);
-    }
+    }   
 
     public function uploader()
     {

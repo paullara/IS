@@ -14,54 +14,77 @@ export default function CreateGroup() {
     }
 
     return (
-        <Instructor>
-            <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
-                <h1>Create Group</h1>
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block mb-4">Group Name</label>
+        <Instructor title="Create Group">
+            <div className="max-w-lg mx-auto mt-10">
+                <h1 className="text-3xl font-bold text-gray-800 mb-6">
+                    Create Group
+                </h1>
+
+                <form
+                    onSubmit={handleSubmit}
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5"
+                >
+                    {/* Group Name */}
+                    <div>
+                        <label className="block text-gray-700 font-medium mb-2">
+                            Group Name
+                        </label>
                         <input
                             type="text"
-                            className="w-full border rounded px-3 py-2"
+                            className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                errors.name
+                                    ? "border-red-500"
+                                    : "border-gray-300"
+                            }`}
                             value={data.name}
-                            placeholder="Group Name"
+                            placeholder="Enter group name"
                             onChange={(e) => setData("name", e.target.value)}
                         />
                         {errors.name && (
-                            <div className="text-red-500 text-sm">
+                            <p className="text-red-500 text-sm mt-1">
                                 {errors.name}
-                            </div>
+                            </p>
                         )}
                     </div>
-                    <div className="mb-4">
-                        <label className="block mb-4">Section</label>
+
+                    {/* Section */}
+                    <div>
+                        <label className="block text-gray-700 font-medium mb-2">
+                            Section
+                        </label>
                         <input
                             type="text"
-                            className="w-full border rounded px-3 py-2"
+                            className={`w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                                errors.section
+                                    ? "border-red-500"
+                                    : "border-gray-300"
+                            }`}
                             value={data.section}
-                            placeholder="Section"
+                            placeholder="Enter section"
                             onChange={(e) => setData("section", e.target.value)}
                         />
                         {errors.section && (
-                            <div className="text-red-500 text-sm">
+                            <p className="text-red-500 text-sm mt-1">
                                 {errors.section}
-                            </div>
+                            </p>
                         )}
                     </div>
-                    <div className="flex justify-between items-center">
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-3">
+                        <Link
+                            href={route("groups.index")}
+                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+                        >
+                            Cancel
+                        </Link>
                         <button
                             type="submit"
-                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
                             disabled={processing}
                         >
                             Create
                         </button>
-                        <Link
-                            href={route("groups.index")}
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
-                        >
-                            Cancel
-                        </Link>
                     </div>
                 </form>
             </div>

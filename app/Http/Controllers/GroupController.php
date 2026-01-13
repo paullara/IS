@@ -59,43 +59,108 @@ class GroupController extends Controller
     }
 
     public function showGroup(Group $group)
-    {
-        $group->load(['instructor', 'students']); // students already assigned
+{
+    $group->load(['instructor', 'students.applications.employer']);
 
-        $documents = $group->documents()->get()->map(function ($doc) {
-            return [
-                'id' => $doc->id,
-                'name' => $doc->original_name,
-                'url' => asset('storage/' . $doc->file_path),
-            ];
-        });
+    $groupStudents = $group->students->map(fn ($student) => [
+        'id' => $student->id,
+        'firstname' => $student->firstname,
+        'middlename' => $student->middlename,
+        'lastname' => $student->lastname,
+        'role' => $student->role, // ✅ now included
+        'section' => $student->section,
+        'company_name' => $student->applications
+            ->where('status', 'accepted')
+            ->first()?->employer->company_name,
+    ]);
 
-        // Get all accepted students
-        $acceptedStudents = User::where('role', 'student')
-            ->whereHas('applications', fn($q) => $q->where('status', 'accepted'))
-            ->with(['applications' => fn($q) => $q->where('status', 'accepted')])
-            ->get();
+    // accepted students (assign modal)
+    $acceptedStudents = User::where('role', 'student')
+        ->whereHas('applications', fn($q) => $q->where('status', 'accepted'))
+        ->with(['applications.employer'])
+        ->get();
 
-            // dd($acceptedStudents->first()->toArray());
+    $users = $acceptedStudents->map(fn($student) => [
+        'id' => $student->id,
+        'firstname' => $student->firstname,
+        'middlename' => $student->middlename,
+        'lastname' => $student->lastname,
+        'role' => $student->role,
+        'section' => $student->section,
+        'company_name' => $student->applications->first()?->employer->company_name,
+        'assigned' => $group->students->contains($student->id),
+    ]);
 
+    return Inertia::render('Instructor/GroupShow', [
+        'group' => [
+            'id' => $group->id,
+            'name' => $group->name,
+            'section' => $group->section,
+            'instructor' => $group->instructor,
+            'students' => $groupStudents,
+        ],
+        'users' => $users,
+        'documents' => $documents,
+    ]);
+}
 
-        $users = $acceptedStudents->map(fn($student) => [
-            'id' => $student->id,
-            'firstname' => $student->firstname,
-            'middlename' => $student->middlename,
-            'lastname' => $student->lastname,
-            'section' => $student->section,
-            'company_name' => $student->applications->first()?->employer->company_name ?? null,
-            'assigned' => $group->students->contains($student->id),
-        ]);
+    public function testGroup(Group $group)
+{
+    $group->load(['instructor', 'students.applications.employer', 'documents']);
 
+    $groupStudents = $group->students->map(fn ($student) => [
+        'id' => $student->id,
+        'firstname' => $student->firstname,
+        'middlename' => $student->middlename,
+        'lastname' => $student->lastname,
+        'role' => $student->role,
+        'section' => $student->section,
+        'company_name' => $student->applications
+            ->where('status', 'accepted')
+            ->first()?->employer->company_name,
+    ]);
 
-        return Inertia::render('Instructor/GroupShow', [
-            'group' => $group,
-            'users' => $users,
-            'documents' => $documents,
-        ]);
-    }
+    // accepted students (assign modal)
+    $acceptedStudents = User::where('role', 'student')
+        ->whereHas('applications', fn ($q) => $q->where('status', 'accepted'))
+        ->with(['applications.employer'])
+        ->get();
+
+    $users = $acceptedStudents->map(fn ($student) => [
+        'id' => $student->id,
+        'firstname' => $student->firstname,
+        'middlename' => $student->middlename,
+        'lastname' => $student->lastname,
+        'role' => $student->role,
+        'section' => $student->section,
+        'company_name' => $student->applications
+            ->where('status', 'accepted')
+            ->first()?->employer->company_name,
+        'assigned' => $group->students->contains($student->id),
+    ]);
+
+    // ✅ DEFINE DOCUMENTS HERE
+    $documents = $group->documents->map(function ($doc) {
+        return [
+            'id' => $doc->id,
+            'name' => $doc->original_name,
+            'url' => asset('storage/' . $doc->file_path),
+        ];
+    });
+
+    return Inertia::render('Instructor/TestGroup', [
+        'group' => [
+            'id' => $group->id,
+            'name' => $group->name,
+            'section' => $group->section,
+            'instructor' => $group->instructor,
+            'students' => $groupStudents,
+        ],
+        'users' => $users,
+        'documents' => $documents, // ✅ now defined
+    ]);
+}
+
 
     public function searchAvailableStudents(Request $request, Group $group)
     {

@@ -21,26 +21,23 @@ class StudentController extends Controller
     }
 
     public function showGroup(Group $group)
-    {
-        $group->load(['instructor', 'students']);
+{
+    $group->load(['instructor', 'students', 'documents']);
 
-        // Load documents and transform them
-        $documents = $group->documents()->get()->map(function ($doc) {
-            return [
-                'id' => $doc->id,
-                'name' => $doc->original_name,
-                'url' => asset('storage/' . $doc->file_path),
-            ];
-        });
+    $documents = $group->documents->map(fn($doc) => [
+        'id'   => $doc->id,
+        'name' => $doc->original_name,
+        'url'  => asset($doc->file_path), // correct public/documents path
+    ]);
 
-        $users = User::select('id', 'firstname', 'role')->get();
+    $users = User::select('id', 'firstname', 'role')->get();
 
-        return Inertia::render('GroupShow', [
-            'group' => $group,
-            'users' => $users,
-            'documents' => $documents,
-        ]);
-    }
+    return Inertia::render('GroupShow', [
+        'group' => $group,
+        'users' => $users,
+        'documents' => $documents,
+    ]);
+}
 
 
     public function myCoursesAsStudent()

@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Instructor from "@/Layouts/Instructor";
 
-export default function GroupShow({ group: initialGroup, users = [] }) {
+export default function GroupShow({ group: initialGroup }) {
     const [group, setGroup] = useState(initialGroup);
     const [activeTab, setActiveTab] = useState("documents");
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState("");
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(false);
 
+    // Fetch documents
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
@@ -23,9 +22,8 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                 console.error("Failed to fetch documents:", err);
             }
         };
-
-        fetchDocuments(); // initial load
-        const interval = setInterval(fetchDocuments, 5000); // repeat every 5s
+        fetchDocuments();
+        const interval = setInterval(fetchDocuments, 5000);
         return () => clearInterval(interval);
     }, [group.id]);
 
@@ -45,8 +43,6 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                     headers: { "Content-Type": "multipart/form-data" },
                 }
             );
-
-            // Instantly show new doc in UI
             setDocuments((prev) => [res.data, ...prev]);
             fileInput.value = "";
         } catch (err) {
@@ -54,7 +50,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         }
     };
 
-    // ✅ Poll for updates (every 5 seconds)
+    // Poll group updates
     useEffect(() => {
         const interval = setInterval(() => {
             axios
@@ -65,62 +61,11 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         return () => clearInterval(interval);
     }, [group.id]);
 
-    // ✅ Search instructors
-    useEffect(() => {
-        if (searchQuery.trim() === "") {
-            setSearchResults([]);
-            return;
-        }
-
-        const timeout = setTimeout(() => {
-            setLoading(true);
-            axios
-                .get(`/coordinator/search-instructors`, {
-                    params: { q: searchQuery },
-                })
-                .then((res) => setSearchResults(res.data))
-                .catch((err) => console.error("Search error:", err))
-                .finally(() => setLoading(false));
-        }, 300);
-
-        return () => clearTimeout(timeout);
-    }, [searchQuery]);
-
-    // ✅ Add instructor to the group
-    const handleAddInstructor = async (instructorId) => {
-        try {
-            await axios.post(
-                `/coordinator/groups/${group.id}/assign-instructors`,
-                {
-                    instructor_ids: [
-                        ...group.instructors.map((i) => i.id),
-                        instructorId,
-                    ],
-                }
-            );
-
-            // Update UI instantly
-            const addedInstructor = searchResults.find(
-                (i) => i.id === instructorId
-            );
-            setGroup((prev) => ({
-                ...prev,
-                instructors: [...prev.instructors, addedInstructor],
-            }));
-
-            // Clear search
-            setSearchQuery("");
-            setSearchResults([]);
-        } catch (error) {
-            console.error("Add instructor failed:", error);
-        }
-    };
-
     // Fetch messages
     useEffect(() => {
         let isMounted = true;
         const fetchMessages = () => {
-            fetch(`/groups/${group.id}/messages`)
+            fetch(`/instructor-groups/${group.id}/messages`)
                 .then((res) => res.json())
                 .then((data) => {
                     if (isMounted) setMessages(data);
@@ -138,7 +83,8 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
         e.preventDefault();
         if (!newMessage.trim()) return;
         setLoading(true);
-        fetch(`/groups/${group.id}/messages`, {
+
+        fetch(`/instructor-groups/${group.id}/messages`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -147,7 +93,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                     .querySelector('meta[name="csrf-token"]')
                     .getAttribute("content"),
             },
-            body: JSON.stringify({ content: newMessage }),
+            body: JSON.stringify({ message: newMessage }),
         })
             .then((res) => res.json())
             .then((msg) => {
@@ -177,61 +123,9 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                     ))}
                 </div>
 
-                {activeTab === "chat" && (
-                    <div className="bg-gray-50 rounded-xl p-6 shadow-sm flex flex-col">
-                        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                            Group Messages
-                        </h2>
-                        <div className="border rounded-lg p-4 h-64 overflow-y-auto bg-white mb-3 flex-1">
-                            {messages.length === 0 ? (
-                                <p className="text-gray-400 text-center">
-                                    No messages yet.
-                                </p>
-                            ) : (
-                                messages.map((msg) => (
-                                    <div
-                                        key={msg.id}
-                                        className="mb-3 border-b pb-2"
-                                    >
-                                        <span className="font-semibold text-gray-900">
-                                            {msg.user?.firstname || "Unknown"}
-                                        </span>
-                                        <span className="text-xs text-gray-500 ml-2">
-                                            {msg.created_at &&
-                                                new Date(
-                                                    msg.created_at
-                                                ).toLocaleString()}
-                                        </span>
-                                        <p className="ml-2 text-gray-700">
-                                            {msg.content}
-                                        </p>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <form
-                            onSubmit={handleSendMessage}
-                            className="flex gap-2 mt-auto"
-                        >
-                            <input
-                                className="border rounded-lg p-2 flex-1"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type a message..."
-                                disabled={loading}
-                            />
-                            <button
-                                type="submit"
-                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-                                disabled={loading}
-                            >
-                                Send
-                            </button>
-                        </form>
-                    </div>
-                )}
+                {/* Documents Tab */}
                 {activeTab === "documents" && (
-                    <div className="bg-white shadow-sm rounded-2xl p-6 border border-gray-100">
+                    <div className="bg-white shadow-md rounded-2xl p-6 border border-gray-100">
                         <h2 className="text-xl font-semibold mb-5">
                             Group Documents
                         </h2>
@@ -259,7 +153,7 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                                 {documents.map((doc) => (
                                     <li
                                         key={doc.id}
-                                        className="py-3 flex justify-between items-center"
+                                        className="py-3 flex justify-between items-center hover:bg-gray-50 transition px-3 rounded"
                                     >
                                         <span className="text-gray-800">
                                             {doc.name}
@@ -280,6 +174,69 @@ export default function GroupShow({ group: initialGroup, users = [] }) {
                                 No documents uploaded yet.
                             </p>
                         )}
+                    </div>
+                )}
+
+                {/* Chat Tab */}
+                {activeTab === "chat" && (
+                    <div className="bg-gray-50 rounded-xl p-6 shadow flex flex-col h-[500px]">
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                            Group Messages
+                        </h2>
+                        <div className="flex-1 overflow-y-auto p-4 bg-white rounded-lg mb-3 flex flex-col-reverse">
+                            {messages.length === 0 ? (
+                                <p className="text-gray-400 text-center">
+                                    No messages yet.
+                                </p>
+                            ) : (
+                                messages
+                                    .slice()
+                                    .reverse()
+                                    .map((msg) => (
+                                        <div
+                                            key={msg.id}
+                                            className={`mb-2 p-2 rounded-lg max-w-[80%] ${
+                                                msg.user?.id === group.user_id
+                                                    ? "bg-indigo-100 self-end"
+                                                    : "bg-gray-100 self-start"
+                                            }`}
+                                        >
+                                            <span className="font-semibold text-gray-900">
+                                                {msg.user?.firstname ||
+                                                    "Unknown"}
+                                            </span>
+                                            <span className="text-xs text-gray-500 ml-2">
+                                                {msg.created_at &&
+                                                    new Date(
+                                                        msg.created_at
+                                                    ).toLocaleTimeString()}
+                                            </span>
+                                            <p className="text-gray-700 mt-1">
+                                                {msg.message}
+                                            </p>
+                                        </div>
+                                    ))
+                            )}
+                        </div>
+                        <form
+                            onSubmit={handleSendMessage}
+                            className="flex gap-2 mt-auto"
+                        >
+                            <input
+                                className="border rounded-lg p-2 flex-1"
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="Type a message..."
+                                disabled={loading}
+                            />
+                            <button
+                                type="submit"
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                disabled={loading}
+                            >
+                                Send
+                            </button>
+                        </form>
                     </div>
                 )}
             </div>
