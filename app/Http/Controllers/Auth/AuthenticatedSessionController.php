@@ -41,7 +41,7 @@ class AuthenticatedSessionController extends Controller
             case 'employer':
                 return redirect()->intended('/employer/dashboard');
             case 'instructor':
-                return redirect()->intended('/instructor/dashboard');
+                return redirect()->intended('/groups');
             default:
                 return redirect()->intended('/dashboard');
         }
