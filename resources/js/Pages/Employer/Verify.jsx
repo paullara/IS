@@ -59,7 +59,7 @@ const REQUIREMENTS = [
 
 export default function Verify({ verification }) {
     const { data, setData, post, processing, errors } = useForm(
-        Object.fromEntries(REQUIREMENTS.map((r) => [r.key, null]))
+        Object.fromEntries(REQUIREMENTS.map((r) => [r.key, null])),
     );
 
     const submit = (e) => {
@@ -68,105 +68,120 @@ export default function Verify({ verification }) {
     };
 
     const status = verification?.status;
+    const comment = verification?.comment;
 
-    // Status screens
-    const StatusCard = ({ color, text }) => (
-        <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
-            <h2 className={`text-lg font-semibold ${color}`}>{text}</h2>
-        </div>
-    );
+    // ================= STATUS SCREENS =================
 
-    if (status === "pending")
+    if (status === "pending") {
         return (
             <EmployerLayout>
-                <StatusCard
-                    color="text-yellow-600"
-                    text="Application submitted and under review."
-                />
+                <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
+                    <h2 className="text-lg font-semibold text-yellow-600">
+                        Application under review
+                    </h2>
+                </div>
             </EmployerLayout>
         );
+    }
 
-    if (status === "approved")
+    if (status === "approved") {
         return (
             <EmployerLayout>
-                <StatusCard
-                    color="text-green-600"
-                    text="Your company has been approved 🎉"
-                />
+                <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
+                    <h2 className="text-lg font-semibold text-green-600">
+                        Your company has been approved 🎉
+                    </h2>
+                </div>
             </EmployerLayout>
         );
+    }
 
-    if (status === "rejected")
+    // ================= REJECTED (SHOW COMMENT + FORM) =================
+    if (status === "rejected") {
         return (
             <EmployerLayout>
-                <StatusCard
-                    color="text-red-600"
-                    text="Application rejected. You may reapply."
-                />
+                <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg border border-gray-100 mt-6">
+                    <h2 className="text-2xl font-bold text-red-600 mb-2">
+                        Application Rejected
+                    </h2>
+
+                    {comment && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm mb-6">
+                            <strong>Reason:</strong> {comment}
+                        </div>
+                    )}
+
+                    <p className="text-sm text-gray-600 mb-6">
+                        Please re-upload the required documents and submit
+                        again.
+                    </p>
+
+                    <form onSubmit={submit} className="space-y-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {REQUIREMENTS.map((req) => (
+                                <div key={req.key} className="space-y-1">
+                                    <label className="block font-medium text-gray-800 text-sm">
+                                        {req.label}
+                                        {req.required && (
+                                            <span className="text-red-500">
+                                                {" "}
+                                                *
+                                            </span>
+                                        )}
+                                    </label>
+
+                                    <label className="flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition text-sm">
+                                        <Upload className="w-4 h-4 mr-2 opacity-60" />
+                                        <span>
+                                            {data[req.key]?.name
+                                                ? data[req.key].name
+                                                : "Choose PDF file"}
+                                        </span>
+                                        <input
+                                            type="file"
+                                            accept="application/pdf"
+                                            className="hidden"
+                                            onChange={(e) =>
+                                                setData(
+                                                    req.key,
+                                                    e.target.files[0],
+                                                )
+                                            }
+                                            required={req.required}
+                                        />
+                                    </label>
+
+                                    {errors[req.key] && (
+                                        <p className="text-xs text-red-500 mt-1">
+                                            {errors[req.key]}
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="w-full py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition disabled:opacity-50"
+                        >
+                            {processing
+                                ? "Resubmitting..."
+                                : "Resubmit Application"}
+                        </button>
+                    </form>
+                </div>
             </EmployerLayout>
         );
+    }
 
-    // Upload form
+    // ================= FIRST TIME SUBMIT =================
     return (
         <EmployerLayout>
-            <div className="max-w-4xl mx-auto p-8 bg-white rounded-2xl shadow-lg border border-gray-100 mt-6">
-                <h2 className="text-2xl font-bold mb-2 tracking-tight">
-                    Company Partnership Application
+            <div className="max-w-xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow-md">
+                <h2 className="text-lg font-semibold text-gray-600">
+                    Please submit your company application.
                 </h2>
-                <p className="text-sm text-gray-600 mb-6">
-                    Upload the required documents below to verify your company.
-                </p>
-
-                <div className="bg-blue-50 border border-blue-200 text-blue-700 p-3 rounded-md text-sm mb-6">
-                    <strong>Note:</strong> Only PDF files are accepted.
-                </div>
-
-                <form onSubmit={submit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {REQUIREMENTS.map((req) => (
-                            <div key={req.key} className="space-y-1">
-                                <label className="block font-medium text-gray-800 text-sm">
-                                    {req.label}
-                                    {req.required && (
-                                        <span className="text-red-500"> *</span>
-                                    )}
-                                </label>
-
-                                <label className="flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition text-sm">
-                                    <Upload className="w-4 h-4 mr-2 opacity-60" />
-                                    <span>
-                                        {data[req.key]?.name
-                                            ? data[req.key].name
-                                            : "Choose PDF file"}
-                                    </span>
-                                    <input
-                                        type="file"
-                                        accept="application/pdf"
-                                        className="hidden"
-                                        onChange={(e) =>
-                                            setData(req.key, e.target.files[0])
-                                        }
-                                        required={req.required}
-                                    />
-                                </label>
-
-                                {errors[req.key] && (
-                                    <p className="text-xs text-red-500 mt-1">
-                                        {errors[req.key]}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-                    >
-                        {processing ? "Submitting..." : "Submit Application"}
-                    </button>
-                </form>
             </div>
         </EmployerLayout>
     );

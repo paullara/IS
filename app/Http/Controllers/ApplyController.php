@@ -51,13 +51,17 @@ class ApplyController extends Controller
             ]);
         }
 
-        $application = new CompanyApplication();
-        $application->user_id = $user->id;
+        $application = CompanyApplication::firstOrNew([
+            'user_id' => $user->id,
+        ]);
+
+        // $application->user_id = $user->id;
         $application->status = 'pending';
+        $application->comment = null;
 
         foreach ($validated as $key => $file) {
             if ($request->hasFile($key)) {
-                $filename = time() . '_' . $file->getClientOriginalName();
+                $filename = time().'_'.$file->getClientOriginalName();
                 $folder = "company_requirements/{$key}";
 
                 $file->move(public_path($folder), $filename);
@@ -71,8 +75,7 @@ class ApplyController extends Controller
     }
      public function getPendingStats()
 {
-    $applicants = CompanyApplication::where('status', 'pending')
-        ->with('user')
+    $applicants = CompanyApplication::with('user')
         ->latest()
         ->get()
         ->map(function ($application) {
@@ -129,16 +132,24 @@ class ApplyController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:approved,rejected'
+            'status' => 'required|in:approved,rejected',
+            'comment' => 'nullable|string'
         ]);
 
         $application = CompanyApplication::findOrFail($id);
+
         $application->status = $request->status;
+        $application->comment = $request->status === 'rejected'
+            ? $request->comment
+            : null;
+
         $application->save();
 
+       
         return response()->json([
             'message' => 'Status updated successfully'
         ]);
     }
+
 
 }

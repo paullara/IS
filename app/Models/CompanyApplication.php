@@ -29,6 +29,7 @@ class CompanyApplication extends Model
         'insurance_path',
         'office_photos_path',
         'nda_path',
+        'comment',
     ];
 
     public function user()
