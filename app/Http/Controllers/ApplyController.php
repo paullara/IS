@@ -130,26 +130,27 @@ class ApplyController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:approved,rejected',
-            'comment' => 'nullable|string'
-        ]);
+{
+    $request->validate([
+        'status' => 'required|in:approved,rejected',
+        'comment' => 'nullable|string',
+    ]);
 
-        $application = CompanyApplication::findOrFail($id);
+    $application = CompanyApplication::findOrFail($id);
 
-        $application->status = $request->status;
-        $application->comment = $request->status === 'rejected'
-            ? $request->comment
-            : null;
+    $application->status = $request->status;
 
-        $application->save();
-
-       
-        return response()->json([
-            'message' => 'Status updated successfully'
-        ]);
+    if ($request->status === 'rejected') {
+        $application->comment = $request->comment;
     }
+
+    $application->save();
+
+    return response()->json([
+        'message' => 'Application status updated',
+    ]);
+}
+
 
 
 }
