@@ -134,160 +134,170 @@ export default function Verification() {
     // ==============================
     return (
         <CoordinatorLayout>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Company Verifications</h2>
-            </div>
-
-            {/* SUCCESS ALERT */}
-            {successMessage && (
-                <div className="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm">
-                    {successMessage}
+            <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">
+                        Company Verifications
+                    </h2>
                 </div>
-            )}
 
-            {/* FILTER TABS */}
-            <div className="flex gap-3 mb-6">
-                {["pending", "approved", "rejected"].map((status) => (
-                    <button
-                        key={status}
-                        onClick={() => setFilter(status)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                            filter === status
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-100 text-gray-600"
-                        }`}
-                    >
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </button>
-                ))}
-            </div>
+                {/* SUCCESS ALERT */}
+                {successMessage && (
+                    <div className="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm">
+                        {successMessage}
+                    </div>
+                )}
 
-            {loading && <p>Loading...</p>}
+                {/* FILTER TABS */}
+                <div className="flex gap-3 mb-6">
+                    {["pending", "approved", "rejected"].map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => setFilter(status)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                                filter === status
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-100 text-gray-600"
+                            }`}
+                        >
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </button>
+                    ))}
+                </div>
 
-            {!loading && filteredVerifications.length === 0 && (
-                <p className="text-gray-500">No {filter} applications found.</p>
-            )}
+                {loading && <p>Loading...</p>}
 
-            <div className="space-y-4">
-                {filteredVerifications.map((company) => (
-                    <div
-                        key={company.id}
-                        className="bg-white border rounded-lg p-4 shadow-sm"
-                    >
-                        <div className="flex justify-between items-center mb-3">
-                            <p className="font-semibold">
-                                {company.user?.name ?? "No Company Name"}
-                            </p>
-                            {statusBadge(company.status)}
-                        </div>
+                {!loading && filteredVerifications.length === 0 && (
+                    <p className="text-gray-500">
+                        No {filter} applications found.
+                    </p>
+                )}
 
-                        {/* DOCUMENT LINKS */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
-                            {Object.entries(company.requirements).map(
-                                ([label, path]) =>
-                                    path && (
-                                        <button
-                                            key={label}
-                                            onClick={() =>
-                                                openViewer(path, label)
-                                            }
-                                            className="text-left text-blue-600 underline text-sm"
-                                        >
-                                            View {label}
-                                        </button>
-                                    ),
+                <div className="space-y-4">
+                    {filteredVerifications.map((company) => (
+                        <div
+                            key={company.id}
+                            className="bg-white border rounded-lg p-4 shadow-sm"
+                        >
+                            <div className="flex justify-between items-center mb-3">
+                                <p className="font-semibold">
+                                    {company.user?.name ?? "No Company Name"}
+                                </p>
+                                {statusBadge(company.status)}
+                            </div>
+
+                            {/* DOCUMENT LINKS */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+                                {Object.entries(company.requirements).map(
+                                    ([label, path]) =>
+                                        path && (
+                                            <button
+                                                key={label}
+                                                onClick={() =>
+                                                    openViewer(path, label)
+                                                }
+                                                className="text-left text-blue-600 underline text-sm"
+                                            >
+                                                View {label}
+                                            </button>
+                                        ),
+                                )}
+                            </div>
+
+                            {/* ACTION BUTTONS (ONLY PENDING) */}
+                            {company.status === "pending" && (
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() =>
+                                            openRejectModal(company.id)
+                                        }
+                                        className="bg-red-500 text-white px-4 py-2 rounded"
+                                    >
+                                        Reject
+                                    </button>
+
+                                    <button
+                                        onClick={() =>
+                                            approveApplication(company.id)
+                                        }
+                                        className="bg-green-600 text-white px-4 py-2 rounded"
+                                    >
+                                        Approve
+                                    </button>
+                                </div>
                             )}
                         </div>
+                    ))}
+                </div>
 
-                        {/* ACTION BUTTONS (ONLY PENDING) */}
-                        {company.status === "pending" && (
-                            <div className="flex gap-3">
+                {/* DOCUMENT VIEWER */}
+                {showViewer && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white w-[85%] h-[85%] rounded shadow-lg relative p-4">
+                            <button
+                                onClick={closeViewer}
+                                className="absolute top-2 right-3 text-xl"
+                            >
+                                ✖
+                            </button>
+
+                            <h3 className="text-lg font-semibold mb-2">
+                                {selectedLabel}
+                            </h3>
+
+                            <div className="border h-[75%] bg-gray-100">
+                                {isPDF(selectedDoc) ? (
+                                    <iframe
+                                        src={selectedDoc}
+                                        className="w-full h-full"
+                                    />
+                                ) : (
+                                    <img
+                                        src={selectedDoc}
+                                        className="max-h-full max-w-full mx-auto"
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* REJECT MODAL */}
+                {showRejectModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white max-w-lg w-full rounded-xl p-6">
+                            <h3 className="text-lg font-semibold text-red-600 mb-2">
+                                Reject Application
+                            </h3>
+
+                            <textarea
+                                value={rejectComment}
+                                onChange={(e) =>
+                                    setRejectComment(e.target.value)
+                                }
+                                rows={4}
+                                className="w-full border rounded-lg p-3"
+                                placeholder="Enter rejection reason..."
+                            />
+
+                            <div className="flex justify-end gap-3 mt-4">
                                 <button
-                                    onClick={() => openRejectModal(company.id)}
-                                    className="bg-red-500 text-white px-4 py-2 rounded"
+                                    onClick={closeRejectModal}
+                                    className="px-4 py-2 border rounded"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={submitRejection}
+                                    className="px-4 py-2 bg-red-600 text-white rounded"
                                 >
                                     Reject
                                 </button>
-
-                                <button
-                                    onClick={() =>
-                                        approveApplication(company.id)
-                                    }
-                                    className="bg-green-600 text-white px-4 py-2 rounded"
-                                >
-                                    Approve
-                                </button>
                             </div>
-                        )}
+                        </div>
                     </div>
-                ))}
+                )}
             </div>
-
-            {/* DOCUMENT VIEWER */}
-            {showViewer && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white w-[85%] h-[85%] rounded shadow-lg relative p-4">
-                        <button
-                            onClick={closeViewer}
-                            className="absolute top-2 right-3 text-xl"
-                        >
-                            ✖
-                        </button>
-
-                        <h3 className="text-lg font-semibold mb-2">
-                            {selectedLabel}
-                        </h3>
-
-                        <div className="border h-[75%] bg-gray-100">
-                            {isPDF(selectedDoc) ? (
-                                <iframe
-                                    src={selectedDoc}
-                                    className="w-full h-full"
-                                />
-                            ) : (
-                                <img
-                                    src={selectedDoc}
-                                    className="max-h-full max-w-full mx-auto"
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* REJECT MODAL */}
-            {showRejectModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white max-w-lg w-full rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-red-600 mb-2">
-                            Reject Application
-                        </h3>
-
-                        <textarea
-                            value={rejectComment}
-                            onChange={(e) => setRejectComment(e.target.value)}
-                            rows={4}
-                            className="w-full border rounded-lg p-3"
-                            placeholder="Enter rejection reason..."
-                        />
-
-                        <div className="flex justify-end gap-3 mt-4">
-                            <button
-                                onClick={closeRejectModal}
-                                className="px-4 py-2 border rounded"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={submitRejection}
-                                className="px-4 py-2 bg-red-600 text-white rounded"
-                            >
-                                Reject
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </CoordinatorLayout>
     );
 }

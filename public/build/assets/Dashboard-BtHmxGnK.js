@@ -1,1 +1,0 @@
-import{j as s}from"./app-_Re8k_5v.js";import{I as a}from"./Instructor-By5S9Ifs.js";function o(){return s.jsx(a,{title:"Dashboard",children:s.jsxs("div",{className:"max-w-4xl mx-auto bg-white p-6 rounded shadow",children:[s.jsx("h1",{className:"text-2xl font-bold mb-4",children:"Dashboard"}),s.jsx("p",{className:"text-gray-600"})]})})}export{o as default};
